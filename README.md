@@ -36,9 +36,7 @@ A lightweight, modern golf scorecard application that allows golfers to track th
 
 3. Start the development server:
    ```bash
-   npm run dev
-   # or
-   yarn dev
+   vite
    ```
 
 4. Open your browser and navigate to `http://localhost:5173`
