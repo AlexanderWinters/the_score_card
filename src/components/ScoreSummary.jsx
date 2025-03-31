@@ -1,6 +1,6 @@
 import React from 'react'
 
-function ScoreSummary({ scores, handicap, courseName, courseData }) {
+function ScoreSummary({ scores, handicap, courseData }) {
     const totalScore = scores.reduce((sum, score) => sum + score, 0)
     const totalPar = courseData.holes.reduce((sum, hole) => sum + hole.par, 0)
     const adjustedScore = Math.max(0, totalScore - handicap)
@@ -8,19 +8,24 @@ function ScoreSummary({ scores, handicap, courseName, courseData }) {
 
     return (
         <div className="score-summary">
-            <h2>Summary - {courseName}</h2>
+            <h2>Summary - {courseData.name}</h2>
             <div className="summary-row">
                 <div>Course Par:</div>
                 <div>{totalPar}</div>
             </div>
             <div className="summary-row">
                 <div>Gross Score:</div>
-                <div>{totalScore}</div>
+                <div>{totalScore || '-'}</div>
             </div>
             <div className="summary-row">
                 <div>vs. Par:</div>
-                <div className={parComparison > 0 ? 'over-par' : parComparison < 0 ? 'under-par' : ''}>
-                    {parComparison > 0 ? `+${parComparison}` : parComparison}
+                <div className={
+                    !totalScore ? '' :
+                        parComparison > 0 ? 'over-par' :
+                            parComparison < 0 ? 'under-par' : ''
+                }>
+                    {!totalScore ? '-' :
+                        parComparison > 0 ? `+${parComparison}` : parComparison}
                 </div>
             </div>
             <div className="summary-row">
@@ -29,7 +34,7 @@ function ScoreSummary({ scores, handicap, courseName, courseData }) {
             </div>
             <div className="summary-row total">
                 <div>Net Score:</div>
-                <div>{adjustedScore}</div>
+                <div>{totalScore ? adjustedScore : '-'}</div>
             </div>
         </div>
     )

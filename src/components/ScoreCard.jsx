@@ -1,13 +1,10 @@
 import React from 'react'
-import HoleInput from './HoleInput'
 
 function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
-    // Calculate handicap distribution across holes (starting from hardest holes)
-    const calculateHcpStrokes = (holeIndex, playerHandicap) => {
-        // In a real app, we would use the hole's handicap index
-        // For simplicity, we'll just distribute handicap across holes sequentially
-        const hardnessRank = (holeIndex % 18) + 1;
-        return hardnessRank <= playerHandicap ? 1 : 0;
+    // Calculate handicap strokes for a hole based on player's handicap and hole's index
+    const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
+        // Distribute handicap strokes according to hole difficulty
+        return hcpIndex <= playerHandicap ? 1 : 0;
     };
 
     return (
@@ -15,6 +12,10 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
             <div className="scorecard-player">
                 <span className="player-label">Player:</span>
                 <span className="player-name">{playerName}</span>
+            </div>
+
+            <div className="course-name-banner">
+                {courseData.name}
             </div>
 
             <div className="scorecard-header">
@@ -26,9 +27,8 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
             </div>
 
             <div className="scorecard-body">
-                {scores.map((score, index) => {
-                    const hole = courseData.holes[index];
-                    const hcpStrokes = calculateHcpStrokes(index, handicap);
+                {courseData.holes.map((hole, index) => {
+                    const hcpStrokes = calculateHcpStrokes(hole.hcpIndex, handicap);
                     const netPar = hole.par + hcpStrokes;
 
                     return (
@@ -40,8 +40,8 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             <div className="hole-score">
                                 <input
                                     type="number"
-                                    value={score === 0 ? '' : score}
-                                    onChange={(e) => updateScore(index, Number(e.target.value))}
+                                    value={scores[index] === 0 ? '' : scores[index]}
+                                    onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
                                     min="1"
                                     placeholder="-"
                                 />
@@ -49,6 +49,23 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                         </div>
                     )
                 })}
+            </div>
+
+            <div className="scorecard-footer">
+                <div className="hole-number">Total</div>
+                <div className="hole-distance">
+                    {courseData.holes.reduce((sum, hole) => sum + hole.distance, 0)}
+                </div>
+                <div className="hole-par">
+                    {courseData.holes.reduce((sum, hole) => sum + hole.par, 0)}
+                </div>
+                <div className="hole-hcp">
+                    {courseData.holes.reduce((sum, hole) => sum + hole.par, 0) +
+                        Math.min(handicap, 18)}
+                </div>
+                <div className="hole-score">
+                    {scores.reduce((sum, score) => sum + score, 0) || '-'}
+                </div>
             </div>
         </div>
     )

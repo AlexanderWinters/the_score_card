@@ -259,3 +259,53 @@ h1 {
 .under-par {
   color: #388e3c;
 }
+
+/* Add these styles to your existing CSS */
+
+.course-select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: white;
+  color: var(--text-color); /* Added text color */
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+
+.course-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.course-name-banner {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 8px 15px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scorecard-footer {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 1fr;
+  padding: 12px 15px;
+  background-color: var(--light-bg);
+  border-top: 2px solid var(--primary-color);
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Add front-nine and back-nine separation for better readability */
+.hole-row:nth-child(9) {
+  border-bottom: 2px dashed var(--primary-color);
+}

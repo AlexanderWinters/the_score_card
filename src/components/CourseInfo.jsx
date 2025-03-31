@@ -1,17 +1,28 @@
 import React from 'react'
 
-function CourseInfo({ courseName, setCourseName, playerName, setPlayerName }) {
+function CourseInfo({
+                        availableCourses,
+                        selectedCourseId,
+                        setSelectedCourseId,
+                        playerName,
+                        setPlayerName
+                    }) {
     return (
         <div className="course-info">
             <div className="info-row">
                 <label htmlFor="courseName">Course:</label>
-                <input
+                <select
                     id="courseName"
-                    type="text"
-                    value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
-                    placeholder="Enter course name"
-                />
+                    value={selectedCourseId}
+                    onChange={(e) => setSelectedCourseId(Number(e.target.value))}
+                    className="course-select"
+                >
+                    {availableCourses.map(course => (
+                        <option key={course.id} value={course.id}>
+                            {course.name}
+                        </option>
+                    ))}
+                </select>
             </div>
             <div className="info-row">
                 <label htmlFor="playerName">Player:</label>
