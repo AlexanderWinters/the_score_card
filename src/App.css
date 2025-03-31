@@ -154,3 +154,108 @@ h1 {
   font-size: 18px;
   color: var(--secondary-color);
 }
+
+
+.course-info {
+  background-color: white;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-row label {
+  width: 80px;
+  font-weight: 500;
+}
+
+.info-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.info-row input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.scorecard-player {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+}
+
+.player-label {
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.player-name {
+  font-weight: bold;
+}
+
+.scorecard-header {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 1fr;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.hole-row {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 1fr;
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+  text-align: center;
+}
+
+.hole-row:nth-child(even) {
+  background-color: var(--light-bg);
+}
+
+.hole-row:last-child {
+  border-bottom: none;
+}
+
+.hole-score input {
+  width: 100%;
+  padding: 8px 5px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.hole-score input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.over-par {
+  color: #d32f2f;
+}
+
+.under-par {
+  color: #388e3c;
+}
