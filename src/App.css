@@ -1,0 +1,156 @@
+:root {
+  --primary-color: #4CAF50;
+  --secondary-color: #2E7D32;
+  --text-color: #333;
+  --light-bg: #f8f8f8;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: var(--text-color);
+  font-family: 'Roboto', Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  max-width: 500px;
+  width: 100%;
+  margin: 20px;
+  padding: 25px;
+  background-color: white;
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius);
+}
+
+h1 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 25px;
+  font-weight: 500;
+}
+
+.handicap-input {
+  margin: 25px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.handicap-input label {
+  font-weight: 500;
+}
+
+.handicap-input input {
+  margin-left: 10px;
+  padding: 10px;
+  width: 70px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.scorecard {
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.scorecard-header {
+  display: flex;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 15px;
+  font-weight: bold;
+}
+
+.scorecard-header div {
+  flex: 1;
+  text-align: center;
+}
+
+.scorecard-body {
+  background-color: white;
+}
+
+.hole-input {
+  display: flex;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.hole-input:nth-child(even) {
+  background-color: var(--light-bg);
+}
+
+.hole-input:last-child {
+  border-bottom: none;
+}
+
+.hole-input .hole-number {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.hole-input input {
+  flex: 1;
+  padding: 8px 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.hole-input input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.score-summary {
+  margin-top: 25px;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.score-summary h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 16px;
+}
+
+.summary-row.total {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  font-weight: bold;
+  font-size: 18px;
+  color: var(--secondary-color);
+}
