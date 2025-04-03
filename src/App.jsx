@@ -83,13 +83,21 @@ function App() {
         <div className="app">
             <h1>The Card</h1>
 
-            <CourseInfo
-                availableCourses={availableCourses}
-                selectedCourseId={selectedCourseId}
-                setSelectedCourseId={setSelectedCourseId}
-                playerName={playerName}
-                setPlayerName={setPlayerName}
-            />
+            <div className="top-section">
+                <CourseInfo
+                    availableCourses={availableCourses}
+                    selectedCourseId={selectedCourseId}
+                    setSelectedCourseId={setSelectedCourseId}
+                    playerName={playerName}
+                    setPlayerName={setPlayerName}
+                />
+
+                <ScoreSummary
+                    scores={scores}
+                    handicap={handicap}
+                    courseData={selectedCourse}
+                />
+            </div>
 
             <HandicapInput handicap={handicap} setHandicap={setHandicap} />
 
@@ -99,12 +107,6 @@ function App() {
                 courseData={selectedCourse}
                 handicap={handicap}
                 playerName={playerName}
-            />
-
-            <ScoreSummary
-                scores={scores}
-                handicap={handicap}
-                courseData={selectedCourse}
             />
         </div>
     )

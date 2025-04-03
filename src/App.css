@@ -1,6 +1,6 @@
 :root {
-  --primary-color: #4CAF50;
-  --secondary-color: #2E7D32;
+  --primary-color: #6d4caf;
+  --secondary-color: #4b2e7d;
   --text-color: #333;
   --light-bg: #f8f8f8;
   --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -25,7 +25,7 @@ body {
 }
 
 .app {
-  max-width: 500px;
+  max-width: 800px;
   width: 100%;
   margin: 20px;
   padding: 25px;
@@ -62,19 +62,53 @@ h1 {
 }
 
 .scorecard {
-  border: 1px solid #e0e0e0;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  min-width: 100%;
 }
+
+.scorecard-table {
+  display: table;
+  width: auto;
+  border-collapse: collapse;
+}
+
 
 .scorecard-header {
   display: flex;
   background-color: var(--primary-color);
   color: white;
-  padding: 12px 15px;
   font-weight: bold;
 }
+
+.scorecard-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.scorecard-row:nth-child(even) {
+  background-color: var(--light-bg);
+}
+
+.row-label {
+  min-width: 60px;
+  padding: 12px 10px;
+  text-align: center;
+  font-weight: 500;
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.hole-column {
+  min-width: 50px;
+  padding: 12px 5px;
+  text-align: center;
+  border-right: 1px solid #eee;
+}
+
+.total-column {
+  background-color: var(--light-bg);
+  font-weight: bold;
+}
+
 
 .scorecard-header div {
   flex: 1;
@@ -119,17 +153,14 @@ h1 {
 .hole-input input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(124, 76, 175, 0.2);
 }
 
 .score-summary {
-  margin-top: 25px;
-  border: 1px solid #e0e0e0;
-  border-radius: var(--border-radius);
-  padding: 20px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  margin-top: 0; /* Override existing margin */
 }
+
 
 .score-summary h2 {
   margin-top: 0;
@@ -157,12 +188,10 @@ h1 {
 
 
 .course-info {
-  background-color: white;
-  padding: 15px;
-  border-radius: var(--border-radius);
-  margin-bottom: 20px;
-  box-shadow: var(--card-shadow);
+  flex: 1;
+  margin-bottom: 0; /* Override existing margin */
 }
+
 
 .info-row {
   display: flex;
@@ -190,7 +219,7 @@ h1 {
 .info-row input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(109, 76, 175, 0.2);
 }
 
 .scorecard-player {
@@ -212,7 +241,7 @@ h1 {
 
 .scorecard-header {
   display: grid;
-  grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 1fr;
+  grid-template-columns: repeat(18, 1fr);
   background-color: var(--primary-color);
   color: white;
   padding: 12px 15px;
@@ -220,14 +249,15 @@ h1 {
   text-align: center;
 }
 
+
 .hole-row {
   display: grid;
-  grid-template-columns: 0.5fr 1fr 0.5fr 0.5fr 1fr;
-  padding: 10px 15px;
+  grid-template-columns: repeat(18, 1fr); /* Creates 18 equal columns for the 18 holes */
+  gap: 5px;
+  padding: 10px 0;
   border-bottom: 1px solid #eee;
-  align-items: center;
-  text-align: center;
 }
+
 
 .hole-row:nth-child(even) {
   background-color: var(--light-bg);
@@ -238,13 +268,13 @@ h1 {
 }
 
 .hole-score input {
-  width: 100%;
-  padding: 8px 5px;
+  width: 40px;
+  padding: 4px;
   text-align: center;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 16px;
 }
+
 
 .hole-score input:focus {
   outline: none;
@@ -252,12 +282,13 @@ h1 {
   box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
+
 .over-par {
   color: #d32f2f;
 }
 
 .under-par {
-  color: #388e3c;
+  color: #5a388e;
 }
 
 /* Add these styles to your existing CSS */
@@ -308,4 +339,28 @@ h1 {
 /* Add front-nine and back-nine separation for better readability */
 .hole-row:nth-child(9) {
   border-bottom: 2px dashed var(--primary-color);
+}
+
+.top-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.scorecard-container {
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.scorecard-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .top-section {
+    flex-direction: column;
+  }
 }
