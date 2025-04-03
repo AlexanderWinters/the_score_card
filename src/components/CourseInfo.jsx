@@ -1,12 +1,17 @@
-import React from 'react'
+// CourseInfo.jsx
+import React from 'react';
 
 function CourseInfo({
                         availableCourses,
                         selectedCourseId,
                         setSelectedCourseId,
+                        selectedTeeBoxId,
+                        setSelectedTeeBoxId,
                         playerName,
                         setPlayerName
                     }) {
+    const selectedCourse = availableCourses.find(course => course.id === selectedCourseId);
+
     return (
         <div className="course-info">
             <div className="info-row">
@@ -24,6 +29,23 @@ function CourseInfo({
                     ))}
                 </select>
             </div>
+
+            <div className="info-row">
+                <label htmlFor="teeBox">Tee:</label>
+                <select
+                    id="teeBox"
+                    value={selectedTeeBoxId}
+                    onChange={(e) => setSelectedTeeBoxId(Number(e.target.value))}
+                    className="tee-select"
+                >
+                    {selectedCourse.teeBoxes.map(tee => (
+                        <option key={tee.id} value={tee.id}>
+                            {tee.name} ({tee.color})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             <div className="info-row">
                 <label htmlFor="playerName">Player:</label>
                 <input
@@ -35,7 +57,7 @@ function CourseInfo({
                 />
             </div>
         </div>
-    )
+    );
 }
 
-export default CourseInfo
+export default CourseInfo;

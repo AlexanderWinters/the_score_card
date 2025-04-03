@@ -364,3 +364,108 @@ h1 {
     flex-direction: column;
   }
 }
+
+/* Add to your scorecard.css file */
+
+.putt-row {
+  background-color: var(--light-bg);
+}
+
+.putt-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 5px;
+}
+
+.putt-input {
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+
+/* Remove arrows from number inputs */
+.putt-input::-webkit-outer-spin-button,
+.putt-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.putt-input[type=number] {
+  -moz-appearance: textfield;
+}
+/* Add to your scorecard.css file */
+
+.putt-row {
+  background-color: var(--light-bg);
+}
+
+.putt-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 5px;
+}
+
+.putt-input {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  border: 2px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 2px;
+}
+.putt-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(109, 76, 175, 0.3);
+}
+
+.putt-input:hover {
+  border-color: var(--primary-color);
+}
+
+
+/* Remove arrows from number inputs */
+.putt-input::-webkit-outer-spin-button,
+.putt-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.putt-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.row-label.putt-label {
+  background-color: var(--secondary-color);
+  color: white;
+  font-weight: 500;
+}
+
+/* In your CSS file (perhaps inputs.css) */
+.tee-select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.tee-select option {
+  background-color: var(--app-bg);
+  color: var(--text-color);
+  padding: 8px;
+}

@@ -1,11 +1,22 @@
-import React from 'react'
+import React, {useState} from 'react'
+import HoleInput from './HoleInput';
 
 function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
     // Calculate handicap strokes for a hole based on player's handicap and hole's index
+    const [puttCounts, setPuttCounts] = useState(Array(18).fill(0));
+
     const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
         // Distribute handicap strokes according to hole difficulty
         return hcpIndex <= playerHandicap ? 1 : 0;
     };
+
+    const updatePuttCount = (index, value) => {
+        const newPuttCounts = [...puttCounts];
+        newPuttCounts[index] = value;
+        setPuttCounts(newPuttCounts);
+    };
+
+    const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
 
     return (
         <div className="scorecard-container">
@@ -35,7 +46,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                         </div>
 
                         <div className="scorecard-row">
-                            <div className="row-label">Yards</div>
+                            <div className="row-label">Meters</div>
                             {courseData.holes.map((hole, index) => (
                                 <div key={index} className="hole-column">
                                     <div className="hole-distance">{hole.distance}</div>
@@ -102,6 +113,28 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Add the new putts row */}
+                        <div className="scorecard-row putt-row">
+                            <div className="row-label putt-label">Putts</div>
+                            {puttCounts.map((putts, index) => (
+                                <div key={index} className="hole-column putt-column">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        value={putts || ''}
+                                        onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
+                                        className="putt-input"
+                                        aria-label={`Putts for hole ${index + 1}`}
+                                    />
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                {totalPutts}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
