@@ -4,6 +4,7 @@ import '../styles/scorecard.css';
 function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
     // Calculate handicap strokes for a hole based on player's handicap and hole's index
     const [puttCounts, setPuttCounts] = useState(Array(18).fill(0));
+    const [girCounts, setGirCounts] = useState(Array(18).fill(false));
 
     const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
         // Distribute handicap strokes according to hole difficulty
@@ -16,7 +17,14 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
         setPuttCounts(newPuttCounts);
     };
 
+    const updateGirCount = (index, value) => {
+        const newGirCounts = [...girCounts];
+        newGirCounts[index] = value;
+        setGirCounts(newGirCounts);
+    };
+
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
+    const totalGirs = girCounts.filter(gir => gir).length;
 
     // Enhanced function to determine the score type compared to par
     const getScoreType = (score, par) => {
@@ -203,6 +211,33 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             ))}
                             <div className="hole-column total-column">
                                 {totalPutts}
+                            </div>
+                        </div>
+
+                        {/* GIR row */}
+                        <div className="scorecard-row gir-row">
+                            <div className="row-label gir-label">GIR</div>
+                            {girCounts.map((gir, index) => (
+                                <div key={index} className="hole-column gir-column">
+                                    <div
+                                        className={`gir-toggle ${gir ? 'gir-hit' : 'gir-miss'}`}
+                                        onClick={() => updateGirCount(index, !gir)}
+                                        aria-label={`Green in Regulation for hole ${index + 1}`}
+                                        role="checkbox"
+                                        aria-checked={gir}
+                                        tabIndex="0"
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                updateGirCount(index, !gir);
+                                            }
+                                        }}
+                                    >
+                                        {gir ? '✓' : ''}
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                {totalGirs}
                             </div>
                         </div>
                     </div>

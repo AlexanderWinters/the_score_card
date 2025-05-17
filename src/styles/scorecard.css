@@ -224,3 +224,60 @@
     pointer-events: none;
     z-index: 1;
 }
+
+/* GIR (Green in Regulation) row styling */
+.gir-row {
+    background-color: var(--light-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+.gir-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 5px;
+}
+
+.gir-toggle {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid var(--input-border);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    user-select: none;
+    box-shadow: var(--soft-shadow);
+}
+
+.gir-toggle:hover {
+    border-color: var(--primary-color);
+}
+
+.gir-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.gir-hit {
+    background-color: var(--under-par);
+    border-color: var(--under-par);
+    color: white;
+}
+
+.gir-miss {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+.row-label.gir-label {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
