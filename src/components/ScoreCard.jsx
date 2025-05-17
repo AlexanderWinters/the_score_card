@@ -19,6 +19,17 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
 
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
 
+    // Function to determine the score type compared to par
+    const getScoreType = (score, par) => {
+        if (!score) return null; // No score entered
+        if (score === par) return "par";
+        if (score === par + 1) return "bogey";
+        if (score > par + 1) return "double-bogey";
+        if (score === par - 1) return "birdie";
+        if (score < par - 1) return "eagle";
+        return null;
+    };
+
     return (
         <div className="scorecard-container">
             <div className="scorecard-player">
@@ -37,9 +48,9 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                         <div className="scorecard-row">
                             <div className="row-label">Hole</div>
                             {courseData.holes.map((hole) => (
-                                    <div key={hole.number} className="hole-column">
-                                        <div className="hole-number">{hole.number}</div>
-                                    </div>
+                                <div key={hole.number} className="hole-column">
+                                    <div className="hole-number">{hole.number}</div>
+                                </div>
                             ))}
                             <div className="hole-column total-column">
                                 <div className="hole-number">Total</div>
@@ -95,19 +106,48 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
 
                         <div className="scorecard-row">
                             <div className="row-label">Score</div>
-                            {courseData.holes.map((hole, index) => (
-                                <div key={index} className="hole-column">
-                                    <div className="hole-score">
-                                        <input
-                                            type="number"
-                                            value={scores[index] === 0 ? '' : scores[index]}
-                                            onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
-                                            min="1"
-                                            placeholder="-"
-                                        />
+                            {courseData.holes.map((hole, index) => {
+                                const scoreType = getScoreType(scores[index], hole.par);
+                                return (
+                                    <div key={index} className="hole-column">
+                                        <div className="hole-score">
+                                            <div className="score-container">
+                                                {scoreType === "bogey" || scoreType === "double-bogey" ? (
+                                                    <div className="score-square">
+                                                        <input
+                                                            type="number"
+                                                            value={scores[index] === 0 ? '' : scores[index]}
+                                                            onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
+                                                            min="1"
+                                                            placeholder="-"
+                                                            className={scoreType === "double-bogey" ? "over-par" : ""}
+                                                        />
+                                                    </div>
+                                                ) : scoreType === "birdie" || scoreType === "eagle" ? (
+                                                    <div className="score-circle">
+                                                        <input
+                                                            type="number"
+                                                            value={scores[index] === 0 ? '' : scores[index]}
+                                                            onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
+                                                            min="1"
+                                                            placeholder="-"
+                                                            className="under-par"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <input
+                                                        type="number"
+                                                        value={scores[index] === 0 ? '' : scores[index]}
+                                                        onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
+                                                        min="1"
+                                                        placeholder="-"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                             <div className="hole-column total-column">
                                 <div className="hole-score">
                                     {scores.reduce((sum, score) => sum + score, 0) || '-'}

@@ -64,4 +64,49 @@
     align-items: center;
 }
 
-/* Other scorecard-related styles */
+/* Add these styles to your scorecard.css file */
+.score-circle {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #5a388e; /* Birdie color - same as your under-par */
+    box-sizing: border-box;
+}
+
+.score-square {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #d32f2f; /* Bogey color - same as your over-par */
+    box-sizing: border-box;
+}
+
+/* Style for the score input to work with the shapes */
+.hole-score input {
+    width: 40px;
+    height: 40px;
+    padding: 4px;
+    text-align: center;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: transparent;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+/* Container for the styled input */
+.score-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
