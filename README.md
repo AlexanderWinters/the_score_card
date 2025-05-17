@@ -44,21 +44,90 @@ A lightweight, modern golf scorecard application that allows golfers to track th
 ## Usage
 
 1. **Enter Player Information**:
-    - Input your name
-    - Set your golf handicap
+   - Input your name
+   - Set your golf handicap
 
 2. **Select Golf Course**:
-    - Enter the course name
-    - (Course details are currently using placeholder data)
+   - Enter the course name
+   - (Course details are currently using placeholder data)
 
 3. **Record Your Scores**:
-    - Enter your score for each hole
-    - View the par and distance for each hole
+   - Enter your score for each hole
+   - View the par and distance for each hole
 
 4. **Review Summary**:
-    - See your total gross score
-    - Compare your score to the course par
-    - View your handicap-adjusted net score
+   - See your total gross score
+   - Compare your score to the course par
+   - View your handicap-adjusted net score
+
+## Deploying a Development Server
+
+### Build and Deploy with Vite and NGINX
+
+This project uses Vite as its build tool, which provides a fast and optimized build process for development and production deployments.
+
+1. **Build the application**:
+   ```bash
+   npm run build
+   ```
+   This command generates optimized static files in the `dist` directory.
+
+2. **Deploy to NGINX**:
+   ```bash
+   sudo cp -r dist/* /var/www/html/
+   ```
+   This copies the build files to your NGINX web server's directory.
+
+### Best Practices for Development Deployment
+
+- **Use Environment Variables**: Create `.env` files for different environments (`.env.development`, `.env.production`) to manage environment-specific configurations.
+
+- **Configure CORS and HMR**: The project is already set up with CORS enabled and Hot Module Replacement (HMR) configured in `vite.config.js`:
+  ```javascript
+  server: {
+    host: true,
+    cors: true,
+    hmr: {
+      host: 'developer.kknds.com'
+    }
+  }
+  ```
+
+- **NGINX Configuration**:
+  ```nginx
+  server {
+      listen 80;
+      server_name dev.yourdomain.com;
+      root /var/www/html;
+      
+      location / {
+          try_files $uri $uri/ /index.html;
+      }
+      
+      # Enable gzip compression
+      gzip on;
+      gzip_types text/plain text/css application/json application/javascript;
+      
+      # Set caching headers
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+          expires 1d;
+          add_header Cache-Control "public, max-age=86400";
+      }
+  }
+  ```
+
+- **Automated Deployment**: Consider setting up a simple deployment script:
+  ```bash
+  #!/bin/bash
+  npm run build
+  sudo cp -r dist/* /var/www/html/
+  sudo systemctl reload nginx
+  echo "Deployment complete!"
+  ```
+
+- **Health Checks**: Implement a basic health check endpoint in your application to monitor the deployment status.
+
+- **Version Tagging**: Consider adding version information to your builds for easier debugging.
 
 ## Upcoming Features
 
