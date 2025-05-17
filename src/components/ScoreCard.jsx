@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import '../styles/scorecard.css';
-import HoleInput from './HoleInput';
 
 function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
     // Calculate handicap strokes for a hole based on player's handicap and hole's index
@@ -119,8 +118,10 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                                             value={scores[index] === 0 ? '' : scores[index]}
                                                             onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
                                                             min="1"
+                                                            max="20"
                                                             placeholder="-"
-                                                            className={scoreType === "double-bogey" ? "over-par" : ""}
+                                                            className={`score-input ${scoreType === "double-bogey" ? "over-par" : ""}`}
+                                                            aria-label={`Score for hole ${index + 1}`}
                                                         />
                                                     </div>
                                                 ) : scoreType === "birdie" || scoreType === "eagle" ? (
@@ -130,8 +131,10 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                                             value={scores[index] === 0 ? '' : scores[index]}
                                                             onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
                                                             min="1"
+                                                            max="20"
                                                             placeholder="-"
-                                                            className="under-par"
+                                                            className="score-input under-par"
+                                                            aria-label={`Score for hole ${index + 1}`}
                                                         />
                                                     </div>
                                                 ) : (
@@ -140,7 +143,10 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                                         value={scores[index] === 0 ? '' : scores[index]}
                                                         onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
                                                         min="1"
+                                                        max="20"
                                                         placeholder="-"
+                                                        className="score-input"
+                                                        aria-label={`Score for hole ${index + 1}`}
                                                     />
                                                 )}
                                             </div>
@@ -155,7 +161,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             </div>
                         </div>
 
-                        {/* Add the new putts row */}
+                        {/* Putts row */}
                         <div className="scorecard-row putt-row">
                             <div className="row-label putt-label">Putts</div>
                             {puttCounts.map((putts, index) => (
