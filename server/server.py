@@ -159,8 +159,13 @@ async def seed_database():
             courses
         )
 
-        # Insert tee boxes and holes
-        for course_id in range(1, 6):
+        # Get the actual course IDs that were inserted
+        inserted_courses = cursor.execute('SELECT id FROM courses ORDER BY id').fetchall()
+
+        # Insert tee boxes and holes for each actual course ID
+        for course_row in inserted_courses:
+            course_id = course_row['id']
+
             tee_boxes = [
                 (course_id, 'Championship', 'Black'),
                 (course_id, 'Club', 'Blue'),

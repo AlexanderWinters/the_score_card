@@ -1,9 +1,10 @@
 // src/api/courseApi.jsx
-const API_BASE_URL = 'http://localhost:3000/api';
+// Remove the hardcoded base URL
+// const API_BASE_URL = 'http://0.0.0.0:3000/api';
 
 export const fetchAllCourses = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/courses`);
+        const response = await fetch('/api/courses');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -16,7 +17,7 @@ export const fetchAllCourses = async () => {
 
 export const fetchCourseById = async (courseId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/courses/${courseId}`);
+        const response = await fetch(`/api/courses/${courseId}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -29,7 +30,7 @@ export const fetchCourseById = async (courseId) => {
 
 export const seedDatabase = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/seed`, {
+        const response = await fetch('/api/seed', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

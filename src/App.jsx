@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState, useEffect } from 'react'
 import './App.css'
 import ScoreCard from './components/ScoreCard'
@@ -5,229 +6,24 @@ import HandicapInput from './components/HandicapInput'
 import ScoreSummary from './components/ScoreSummary'
 import CourseInfo from './components/CourseInfo'
 import ThemeToggle from "./components/ThemeToggle.jsx";
+import { fetchAllCourses, fetchCourseById, seedDatabase } from './api/courseApi'
 
 function App() {
-    // Placeholder course data for 5 Swedish golf courses
-    const availableCourses = [
-        {
-            id: 1,
-            name: "Bro Hof Slott GC",
-            teeBoxes: [
-                {
-                    id: 1,
-                    name: "Championship",
-                    color: "Black",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 165 + (i * 15), // Longer championship course
-                        par: i % 4 === 0 ? 5 : (i % 4 === 2 ? 3 : 4),
-                        hcpIndex: ((i * 7) % 18) + 1
-                    }))
-                },
-                {
-                    id: 2,
-                    name: "Club",
-                    color: "Blue",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 150 + (i * 13), // Slightly shorter
-                        par: i % 4 === 0 ? 5 : (i % 4 === 2 ? 3 : 4),
-                        hcpIndex: ((i * 7) % 18) + 1 // Same handicap index distribution
-                    }))
-                },
-                {
-                    id: 3,
-                    name: "Forward",
-                    color: "Red",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 130 + (i * 10), // Shortest tees
-                        par: i % 4 === 0 ? 5 : (i % 4 === 2 ? 3 : 4),
-                        hcpIndex: ((i * 7) % 18) + 1
-                    }))
-                }
-            ]
+    const [availableCourses, setAvailableCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-        },
-        {
-            id: 2,
-            name: "Ullna Golf Club",
-            teeBoxes: [
-                {
-                    id: 1,
-                    name: "Championship",
-                    color: "Black",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 150 + (i * 12),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                // Add other tee boxes
-                {
-                    id: 2,
-                    name: "Club",
-                    color: "Blue",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 140 + (i * 10),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                {
-                    id: 3,
-                    name: "Forward",
-                    color: "Red",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 120 + (i * 9),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                }
-            ]
+    const [handicap, setHandicap] = useState(0);
+    const [playerName, setPlayerName] = useState('Player 1');
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
+    const [scores, setScores] = useState(Array(18).fill(0));
+    const [selectedTeeBoxId, setSelectedTeeBoxId] = useState(null);
 
-        },
-        {
-            id: 3,
-            name: "Halmstad GK (North)",
-            teeBoxes: [
-                {
-                    id: 1,
-                    name: "Championship",
-                    color: "Black",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 150 + (i * 12),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                // Add other tee boxes
-                {
-                    id: 2,
-                    name: "Club",
-                    color: "Blue",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 140 + (i * 10),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                {
-                    id: 3,
-                    name: "Forward",
-                    color: "Red",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 120 + (i * 9),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                }
-            ]
-
-        },
-        {
-            id: 4,
-            name: "Falsterbo GK",
-            teeBoxes: [
-                {
-                    id: 1,
-                    name: "Championship",
-                    color: "Black",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 150 + (i * 12),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                // Add other tee boxes
-                {
-                    id: 2,
-                    name: "Club",
-                    color: "Blue",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 140 + (i * 10),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                {
-                    id: 3,
-                    name: "Forward",
-                    color: "Red",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 120 + (i * 9),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                }
-            ]
-
-        },
-        {
-            id: 5,
-            name: "Barsebäck Golf & CC",
-            teeBoxes: [
-                {
-                    id: 1,
-                    name: "Championship",
-                    color: "Black",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 150 + (i * 12),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                // Add other tee boxes
-                {
-                    id: 2,
-                    name: "Club",
-                    color: "Blue",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 140 + (i * 10),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                },
-                {
-                    id: 3,
-                    name: "Forward",
-                    color: "Red",
-                    holes: Array(18).fill().map((_, i) => ({
-                        number: i + 1,
-                        distance: 120 + (i * 9),
-                        par: i % 4 === 1 ? 5 : (i % 4 === 3 ? 3 : 4),
-                        hcpIndex: ((i * 5) % 18) + 1
-                    }))
-                }
-            ]
-
-        }
-    ];
-
-    const [handicap, setHandicap] = useState(0)
-    const [playerName, setPlayerName] = useState('Player 1')
-    const [selectedCourseId, setSelectedCourseId] = useState(1) // Default to first course
-    const [scores, setScores] = useState(Array(18).fill(0))
-
-    const [selectedTeeBoxId, setSelectedTeeBoxId] = useState(1); // Default to first tee box
-
-// Get the currently selected course data with the selected tee box
-    const selectedCourse = availableCourses.find(course => course.id === selectedCourseId);
-    const selectedTeeBox = selectedCourse.teeBoxes.find(tee => tee.id === selectedTeeBoxId);
+    const [selectedCourse, setSelectedCourse] = useState(null);
+    const [selectedTeeBox, setSelectedTeeBox] = useState(null);
+    const [databaseInitialized, setDatabaseInitialized] = useState(false);
 
     const [darkMode, setDarkMode] = useState(() => {
-        // Check local storage for theme preference or default to system preference
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             return savedTheme === 'dark';
@@ -235,6 +31,92 @@ function App() {
             return window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
     });
+
+    // Initialize the database with seed data when app first loads
+    useEffect(() => {
+        const initDb = async () => {
+            console.log("Starting database initialization");
+            try {
+                await seedDatabase();
+                console.log("Database seeded successfully");
+                setDatabaseInitialized(true);
+            } catch (err) {
+                console.error('Failed to seed database:', err);
+                setError('Failed to initialize the database. Please try again later.');
+            }
+        };
+
+        initDb();
+    }, []);
+
+    // Fetch all courses when database is initialized
+    useEffect(() => {
+        if (!databaseInitialized) return;
+
+        const loadCourses = async () => {
+            try {
+                setLoading(true);
+                const courses = await fetchAllCourses();
+                setAvailableCourses(courses);
+
+                if (courses.length > 0) {
+                    setSelectedCourseId(courses[0].id);
+                }
+
+                setError(null);
+            } catch (err) {
+                setError('Failed to load courses. Please try again later.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCourses();
+    }, [databaseInitialized]);
+
+    // Fetch selected course details when selectedCourseId changes
+    useEffect(() => {
+        const loadCourseDetails = async () => {
+            if (!selectedCourseId) return;
+
+            try {
+                setLoading(true);
+                const courseDetails = await fetchCourseById(selectedCourseId);
+                console.log('Raw course details:', JSON.stringify(courseDetails, null, 2));
+
+                setSelectedCourse(courseDetails);
+
+                if (courseDetails.teeBoxes && courseDetails.teeBoxes.length > 0) {
+                    // Find tee box by ID or default to first one
+                    const teeBox = courseDetails.teeBoxes.find(tee => tee.id === selectedTeeBoxId)
+                        || courseDetails.teeBoxes[0];
+
+                    setSelectedTeeBox(teeBox);
+                    setSelectedTeeBoxId(teeBox.id);
+                }
+
+                setError(null);
+            } catch (err) {
+                setError('Failed to load course details. Please try again later.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCourseDetails();
+    }, [selectedCourseId]);
+
+    // Update selected tee box when teeBoxId changes
+    useEffect(() => {
+        if (selectedCourse && selectedCourse.teeBoxes) {
+            const teeBox = selectedCourse.teeBoxes.find(tee => tee.id === selectedTeeBoxId);
+            if (teeBox) {
+                setSelectedTeeBox(teeBox);
+            }
+        }
+    }, [selectedTeeBoxId, selectedCourse]);
 
     useEffect(() => {
         if (darkMode) {
@@ -245,26 +127,37 @@ function App() {
         localStorage.setItem('theme', darkMode ? 'dark' : 'light');
     }, [darkMode]);
 
-
-
-// Reset scores and possibly tee selection when changing courses
-    useEffect(() => {
-        setScores(Array(18).fill(0));
-        // Optionally reset to first tee box when changing courses
-        setSelectedTeeBoxId(1);
-    }, [selectedCourseId]);
-
-    // Get the currently selected course data
-
     // Reset scores when changing courses
     useEffect(() => {
         setScores(Array(18).fill(0));
     }, [selectedCourseId]);
 
     const updateScore = (holeIndex, score) => {
-        const newScores = [...scores]
-        newScores[holeIndex] = score
-        setScores(newScores)
+        const newScores = [...scores];
+        newScores[holeIndex] = score;
+        setScores(newScores);
+    };
+
+    if (loading && !selectedCourse) {
+        return <div className="loading">Loading courses...</div>;
+    }
+
+    if (error) {
+        return <div className="error">{error}</div>;
+    }
+
+    // Instead of showing a "Select a course" message, automatically select the first course
+    if (!selectedCourse || !selectedTeeBox) {
+        // Check if courses are available but none is selected
+        if (availableCourses.length > 0) {
+            // If we have courses but no selection, select the first one
+            // This should trigger the useEffect that loads course details
+            // We can return a loading indicator during this process
+            return <div className="loading">Loading course details...</div>;
+        } else {
+            // If no courses are available at all
+            return <div className="loading">No courses available</div>;
+        }
     }
 
     return (
@@ -281,16 +174,15 @@ function App() {
                     setSelectedTeeBoxId={setSelectedTeeBoxId}
                     playerName={playerName}
                     setPlayerName={setPlayerName}
+                    selectedCourse={selectedCourse}
                 />
-
 
                 <ScoreSummary
                     scores={scores}
                     handicap={handicap}
-                    courseData={selectedTeeBox} // Pass the selected tee box data
-                    courseName={selectedCourse.name} // Pass the course name separately if needed
+                    courseData={selectedTeeBox}
+                    courseName={selectedCourse.name}
                 />
-
             </div>
 
             <HandicapInput handicap={handicap} setHandicap={setHandicap} />
@@ -298,13 +190,12 @@ function App() {
             <ScoreCard
                 scores={scores}
                 updateScore={updateScore}
-                courseData={selectedTeeBox} // Pass the selected tee box data instead of the whole course
+                courseData={selectedTeeBox}
                 handicap={handicap}
                 playerName={playerName}
             />
-
         </div>
-    )
+    );
 }
 
-export default App
+export default App;

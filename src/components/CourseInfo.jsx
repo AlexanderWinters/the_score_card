@@ -1,4 +1,4 @@
-// CourseInfo.jsx
+// src/components/CourseInfo.jsx
 import React from 'react';
 
 function CourseInfo({
@@ -8,18 +8,39 @@ function CourseInfo({
                         selectedTeeBoxId,
                         setSelectedTeeBoxId,
                         playerName,
-                        setPlayerName
+                        setPlayerName,
+                        selectedCourse
                     }) {
-    const selectedCourse = availableCourses.find(course => course.id === selectedCourseId);
+    const handleCourseChange = (e) => {
+        const courseId = Number(e.target.value);
+        console.log('Selected course ID:', courseId);
+        setSelectedCourseId(courseId);
+    };
+
+    const handleTeeChange = (e) => {
+        setSelectedTeeBoxId(Number(e.target.value));
+    };
 
     return (
         <div className="course-info">
+            <h2>Course Information</h2>
+
             <div className="info-row">
-                <label htmlFor="courseName">Course:</label>
+                <label htmlFor="playerName">Player:</label>
+                <input
+                    id="playerName"
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                />
+            </div>
+
+            <div className="info-row">
+                <label htmlFor="courseSelect">Course:</label>
                 <select
-                    id="courseName"
+                    id="courseSelect"
                     value={selectedCourseId}
-                    onChange={(e) => setSelectedCourseId(Number(e.target.value))}
+                    onChange={handleCourseChange}
                     className="course-select"
                 >
                     {availableCourses.map(course => (
@@ -30,32 +51,23 @@ function CourseInfo({
                 </select>
             </div>
 
-            <div className="info-row">
-                <label htmlFor="teeBox">Tee:</label>
-                <select
-                    id="teeBox"
-                    value={selectedTeeBoxId}
-                    onChange={(e) => setSelectedTeeBoxId(Number(e.target.value))}
-                    className="tee-select"
-                >
-                    {selectedCourse.teeBoxes.map(tee => (
-                        <option key={tee.id} value={tee.id}>
-                            {tee.name} ({tee.color})
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <div className="info-row">
-                <label htmlFor="playerName">Player:</label>
-                <input
-                    id="playerName"
-                    type="text"
-                    value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value)}
-                    placeholder="Enter player name"
-                />
-            </div>
+            {selectedCourse && selectedCourse.teeBoxes && (
+                <div className="info-row">
+                    <label htmlFor="teeSelect">Tee:</label>
+                    <select
+                        id="teeSelect"
+                        value={selectedTeeBoxId}
+                        onChange={handleTeeChange}
+                        className="tee-select"
+                    >
+                        {selectedCourse.teeBoxes.map(tee => (
+                            <option key={tee.id} value={tee.id}>
+                                {tee.name} ({tee.color})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
         </div>
     );
 }
