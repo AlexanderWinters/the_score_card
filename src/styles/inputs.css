@@ -1,0 +1,61 @@
+.handicap-input {
+    margin: 25px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.handicap-input label {
+    font-weight: 500;
+}
+
+.handicap-input input {
+    margin-left: 10px;
+    padding: 10px;
+    width: 70px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.hole-input {
+    display: flex;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.hole-input:nth-child(even) {
+    background-color: var(--light-bg);
+}
+
+.hole-input:last-child {
+    border-bottom: none;
+}
+
+.hole-input .hole-number {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.hole-input input {
+    flex: 1;
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.hole-input input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(124, 76, 175, 0.2);
+}
+/* Other input-related styles */

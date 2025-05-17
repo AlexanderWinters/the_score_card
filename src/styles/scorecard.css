@@ -1,0 +1,67 @@
+.scorecard {
+    min-width: 100%;
+}
+
+.scorecard-table {
+    display: table;
+    width: auto;
+    border-collapse: collapse;
+}
+
+.scorecard-header {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.scorecard-row {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.scorecard-row:nth-child(even) {
+    background-color: var(--light-bg);
+}
+
+.row-label {
+    min-width: 60px;
+    padding: 12px 10px;
+    text-align: center;
+    font-weight: 500;
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.hole-column {
+    min-width: 50px;
+    padding: 12px 5px;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+}
+
+.total-column {
+    background-color: var(--light-bg);
+    font-weight: bold;
+}
+
+.scorecard-header div {
+    flex: 1;
+    text-align: center;
+}
+
+.scorecard-body {
+    background-color: var(--app-bg);
+}
+.scorecard-player {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+}
+
+/* Other scorecard-related styles */

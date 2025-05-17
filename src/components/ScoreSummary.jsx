@@ -1,4 +1,5 @@
 import React from 'react'
+import '../styles/summary.css'
 
 function ScoreSummary({ scores, handicap, courseData }) {
     const totalScore = scores.reduce((sum, score) => sum + score, 0)

@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import '../styles/scorecard.css';
 import HoleInput from './HoleInput';
 
 function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {

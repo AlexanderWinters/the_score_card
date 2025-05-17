@@ -4,6 +4,7 @@ import ScoreCard from './components/ScoreCard'
 import HandicapInput from './components/HandicapInput'
 import ScoreSummary from './components/ScoreSummary'
 import CourseInfo from './components/CourseInfo'
+import ThemeToggle from "./components/ThemeToggle.jsx";
 
 function App() {
     // Placeholder course data for 5 Swedish golf courses
@@ -225,6 +226,27 @@ function App() {
     const selectedCourse = availableCourses.find(course => course.id === selectedCourseId);
     const selectedTeeBox = selectedCourse.teeBoxes.find(tee => tee.id === selectedTeeBoxId);
 
+    const [darkMode, setDarkMode] = useState(() => {
+        // Check local storage for theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            return savedTheme === 'dark';
+        } else {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+    });
+
+    useEffect(() => {
+        if (darkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+        localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    }, [darkMode]);
+
+
+
 // Reset scores and possibly tee selection when changing courses
     useEffect(() => {
         setScores(Array(18).fill(0));
@@ -247,6 +269,7 @@ function App() {
 
     return (
         <div className="app">
+            <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
             <h1>The Card</h1>
 
             <div className="top-section">
