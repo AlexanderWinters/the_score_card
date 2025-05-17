@@ -47,3 +47,84 @@ export const seedDatabase = async () => {
         throw error;
     }
 };
+
+// Add these functions to courseApi.jsx
+
+export const addCourse = async (courseData) => {
+    try {
+        const response = await fetch('/api/courses', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(courseData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to add course');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding course:', error);
+        throw error;
+    }
+};
+
+export const uploadJsonCourses = async (file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/courses/json-upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to upload JSON file');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error uploading JSON:', error);
+        throw error;
+    }
+};
+
+export const uploadCsvCourses = async (file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/courses/csv-upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to upload CSV file');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error uploading CSV:', error);
+        throw error;
+    }
+};
+
+export const checkDatabase = async () => {
+    try {
+        const response = await fetch('/api/check-database');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error checking database:', error);
+        throw error;
+    }
+};

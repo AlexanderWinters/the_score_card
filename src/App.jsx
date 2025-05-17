@@ -1,14 +1,16 @@
 // src/App.jsx
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import ScoreCard from './components/ScoreCard'
 import HandicapInput from './components/HandicapInput'
 import ScoreSummary from './components/ScoreSummary'
 import CourseInfo from './components/CourseInfo'
-import ThemeToggle from "./components/ThemeToggle.jsx";
-import { fetchAllCourses, fetchCourseById, seedDatabase } from './api/courseApi'
+import ThemeToggle from "./components/ThemeToggle.jsx"
+import AdminPage from './components/AdminPage'
+import {checkDatabase, fetchAllCourses, fetchCourseById, seedDatabase} from './api/courseApi'
 
-function App() {
+function MainApp() {
     const [availableCourses, setAvailableCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -33,15 +35,27 @@ function App() {
     });
 
     // Initialize the database with seed data when app first loads
+// Initialize database only if needed
     useEffect(() => {
         const initDb = async () => {
-            console.log("Starting database initialization");
+            console.log("Checking database status");
             try {
-                await seedDatabase();
-                console.log("Database seeded successfully");
-                setDatabaseInitialized(true);
+                // First check if the database already has courses
+                const dbStatus = await checkDatabase();
+
+                if (dbStatus.has_courses) {
+                    // Database already has courses, no need to seed
+                    console.log("Database already has courses, skipping seed");
+                    setDatabaseInitialized(true);
+                } else {
+                    // Database is empty, we need to seed it
+                    console.log("Database is empty, seeding with initial data");
+                    await seedDatabase();
+                    console.log("Database seeded successfully");
+                    setDatabaseInitialized(true);
+                }
             } catch (err) {
-                console.error('Failed to seed database:', err);
+                console.error('Failed to initialize database:', err);
                 setError('Failed to initialize the database. Please try again later.');
             }
         };
@@ -162,8 +176,11 @@ function App() {
 
     return (
         <div className="app">
-            <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <h1>The Card</h1>
+            <div className="app-header">
+                <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+                <h1>The Card</h1>
+                <Link to="/admin" className="admin-link">Admin</Link>
+            </div>
 
             <div className="top-section">
                 <CourseInfo
@@ -195,6 +212,17 @@ function App() {
                 playerName={playerName}
             />
         </div>
+    );
+}
+
+function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<MainApp />} />
+                <Route path="/admin" element={<AdminPage />} />
+            </Routes>
+        </Router>
     );
 }
 

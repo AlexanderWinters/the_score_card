@@ -27,3 +27,8 @@ dist-ssr
 .venv/
 */.venv/
 
+*.db
+*.sqlite
+*.sqlite3
+
+
