@@ -18,15 +18,45 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
 
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
 
-    // Function to determine the score type compared to par
+    // Enhanced function to determine the score type compared to par
     const getScoreType = (score, par) => {
         if (!score) return null; // No score entered
-        if (score === par) return "par";
-        if (score === par + 1) return "bogey";
-        if (score > par + 1) return "double-bogey";
-        if (score === par - 1) return "birdie";
-        if (score < par - 1) return "eagle";
+
+        const scoreDiff = score - par;
+
+        if (scoreDiff === 0) return "par";
+        if (scoreDiff === 1) return "bogey";
+        if (scoreDiff >= 2) return "double-bogey";
+        if (scoreDiff === -1) return "birdie";
+        if (scoreDiff <= -2) return "eagle";
+
         return null;
+    };
+
+    // Get the appropriate CSS class based on score type
+    const getScoreClass = (scoreType) => {
+        switch (scoreType) {
+            case "bogey":
+                return "score-square";
+            case "double-bogey":
+                return "score-double-square";
+            case "birdie":
+                return "score-circle";
+            case "eagle":
+                return "score-double-circle";
+            default:
+                return "";
+        }
+    };
+
+    // Get the text color class based on score type
+    const getTextColorClass = (scoreType) => {
+        if (scoreType === "bogey" || scoreType === "double-bogey") {
+            return "over-par";
+        } else if (scoreType === "birdie" || scoreType === "eagle") {
+            return "under-par";
+        }
+        return "";
     };
 
     return (
@@ -43,7 +73,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
             <div className="scorecard-scroll">
                 <div className="scorecard">
                     <div className="scorecard-table">
-
+                        {/* Hole row */}
                         <div className="scorecard-row">
                             <div className="row-label">Hole</div>
                             {courseData.holes.map((hole) => (
@@ -56,6 +86,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             </div>
                         </div>
 
+                        {/* Meters row */}
                         <div className="scorecard-row">
                             <div className="row-label">Meters</div>
                             {courseData.holes.map((hole, index) => (
@@ -70,6 +101,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             </div>
                         </div>
 
+                        {/* Par row */}
                         <div className="scorecard-row">
                             <div className="row-label">Par</div>
                             {courseData.holes.map((hole, index) => (
@@ -84,6 +116,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             </div>
                         </div>
 
+                        {/* HCP row */}
                         <div className="scorecard-row">
                             <div className="row-label">HCP</div>
                             {courseData.holes.map((hole, index) => {
@@ -103,16 +136,20 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                             </div>
                         </div>
 
+                        {/* Score row */}
                         <div className="scorecard-row">
                             <div className="row-label">Score</div>
                             {courseData.holes.map((hole, index) => {
                                 const scoreType = getScoreType(scores[index], hole.par);
+                                const scoreClass = getScoreClass(scoreType);
+                                const textColorClass = getTextColorClass(scoreType);
+
                                 return (
                                     <div key={index} className="hole-column">
                                         <div className="hole-score">
                                             <div className="score-container">
-                                                {scoreType === "bogey" || scoreType === "double-bogey" ? (
-                                                    <div className="score-square">
+                                                {scoreClass ? (
+                                                    <div className={scoreClass}>
                                                         <input
                                                             type="number"
                                                             value={scores[index] === 0 ? '' : scores[index]}
@@ -120,20 +157,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                                             min="1"
                                                             max="20"
                                                             placeholder="-"
-                                                            className={`score-input ${scoreType === "double-bogey" ? "over-par" : ""}`}
-                                                            aria-label={`Score for hole ${index + 1}`}
-                                                        />
-                                                    </div>
-                                                ) : scoreType === "birdie" || scoreType === "eagle" ? (
-                                                    <div className="score-circle">
-                                                        <input
-                                                            type="number"
-                                                            value={scores[index] === 0 ? '' : scores[index]}
-                                                            onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
-                                                            min="1"
-                                                            max="20"
-                                                            placeholder="-"
-                                                            className="score-input under-par"
+                                                            className={`score-input ${textColorClass}`}
                                                             aria-label={`Score for hole ${index + 1}`}
                                                         />
                                                     </div>
@@ -181,7 +205,6 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
                                 {totalPutts}
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
