@@ -15,11 +15,31 @@ function MainApp() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const [handicap, setHandicap] = useState(0);
-    const [playerName, setPlayerName] = useState('Player 1');
-    const [selectedCourseId, setSelectedCourseId] = useState(null);
-    const [scores, setScores] = useState(Array(18).fill(0));
-    const [selectedTeeBoxId, setSelectedTeeBoxId] = useState(null);
+    const [resetTrigger, setResetTrigger] = useState(0);
+
+
+    // Initialize state from localStorage if available, otherwise use defaults
+    const [handicap, setHandicap] = useState(() => {
+        const savedHandicap = localStorage.getItem('handicap');
+        return savedHandicap ? Number(savedHandicap) : 0;
+    });
+
+    const [playerName, setPlayerName] = useState(() => {
+        return localStorage.getItem('playerName') || 'Player 1';
+    });
+
+    const [selectedCourseId, setSelectedCourseId] = useState(() => {
+        return localStorage.getItem('selectedCourseId') || null;
+    });
+
+    const [scores, setScores] = useState(() => {
+        const savedScores = localStorage.getItem('scores');
+        return savedScores ? JSON.parse(savedScores) : Array(18).fill(0);
+    });
+
+    const [selectedTeeBoxId, setSelectedTeeBoxId] = useState(() => {
+        return localStorage.getItem('selectedTeeBoxId') || null;
+    });
 
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [selectedTeeBox, setSelectedTeeBox] = useState(null);
@@ -34,8 +54,32 @@ function MainApp() {
         }
     });
 
+    // Save state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('handicap', handicap.toString());
+    }, [handicap]);
+
+    useEffect(() => {
+        localStorage.setItem('playerName', playerName);
+    }, [playerName]);
+
+    useEffect(() => {
+        if (selectedCourseId) {
+            localStorage.setItem('selectedCourseId', selectedCourseId);
+        }
+    }, [selectedCourseId]);
+
+    useEffect(() => {
+        localStorage.setItem('scores', JSON.stringify(scores));
+    }, [scores]);
+
+    useEffect(() => {
+        if (selectedTeeBoxId) {
+            localStorage.setItem('selectedTeeBoxId', selectedTeeBoxId);
+        }
+    }, [selectedTeeBoxId]);
+
     // Initialize the database with seed data when app first loads
-// Initialize database only if needed
     useEffect(() => {
         const initDb = async () => {
             console.log("Checking database status");
@@ -73,7 +117,8 @@ function MainApp() {
                 const courses = await fetchAllCourses();
                 setAvailableCourses(courses);
 
-                if (courses.length > 0) {
+                // Only set default course if no course is selected yet
+                if (courses.length > 0 && !selectedCourseId) {
                     setSelectedCourseId(courses[0].id);
                 }
 
@@ -87,7 +132,7 @@ function MainApp() {
         };
 
         loadCourses();
-    }, [databaseInitialized]);
+    }, [databaseInitialized, selectedCourseId]);
 
     // Fetch selected course details when selectedCourseId changes
     useEffect(() => {
@@ -141,15 +186,48 @@ function MainApp() {
         localStorage.setItem('theme', darkMode ? 'dark' : 'light');
     }, [darkMode]);
 
-    // Reset scores when changing courses
+    // Modified: Only reset scores when changing courses if we don't have saved scores for this course
     useEffect(() => {
-        setScores(Array(18).fill(0));
+        // Check if we're loading a saved session, if not, reset scores
+        const savedCourseId = localStorage.getItem('lastCourseId');
+        if (selectedCourseId !== savedCourseId) {
+            setScores(Array(18).fill(0));
+            localStorage.setItem('lastCourseId', selectedCourseId);
+
+            // Reset putt and gir counts
+            localStorage.removeItem('puttCounts');
+            localStorage.removeItem('girCounts');
+
+        }
     }, [selectedCourseId]);
 
     const updateScore = (holeIndex, score) => {
         const newScores = [...scores];
         newScores[holeIndex] = score;
         setScores(newScores);
+    };
+
+    // Add reset session function
+    const resetSession = () => {
+        // Reset state to defaults
+        setHandicap(0);
+        setPlayerName('Player 1');
+        setScores(Array(18).fill(0));
+
+        setResetTrigger(prev => prev + 1);
+
+
+        // Clear localStorage of session data
+        localStorage.removeItem('handicap');
+        localStorage.removeItem('playerName');
+        localStorage.removeItem('scores');
+        localStorage.removeItem('lastCourseId');
+        localStorage.removeItem('puttCounts');
+        localStorage.removeItem('girCounts');
+
+
+        // We're keeping the course selection because that's a preference
+        // but we could reset it too if desired
     };
 
     if (loading && !selectedCourse) {
@@ -179,7 +257,16 @@ function MainApp() {
             <div className="app-header">
                 <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
                 <h1>The Card</h1>
-                <Link to="/admin" className="admin-link">Admin</Link>
+                <div className="header-links">
+                    <button
+                        className="reset-session-button"
+                        onClick={resetSession}
+                        title="Reset current scorecard"
+                    >
+                        New Round
+                    </button>
+                    <Link to="/admin" className="admin-link">Admin</Link>
+                </div>
             </div>
 
             <div className="top-section">
@@ -210,6 +297,8 @@ function MainApp() {
                 courseData={selectedTeeBox}
                 handicap={handicap}
                 playerName={playerName}
+                resetPuttsAndGIR={resetTrigger}
+
             />
         </div>
     );

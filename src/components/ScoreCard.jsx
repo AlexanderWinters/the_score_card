@@ -1,10 +1,35 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import '../styles/scorecard.css';
 
-function ScoreCard({ scores, updateScore, courseData, handicap, playerName }) {
-    // Calculate handicap strokes for a hole based on player's handicap and hole's index
-    const [puttCounts, setPuttCounts] = useState(Array(18).fill(0));
-    const [girCounts, setGirCounts] = useState(Array(18).fill(false));
+function ScoreCard({ scores, updateScore, courseData, handicap, playerName, resetPuttsAndGIR
+                   }) {
+    // Initialize from localStorage or use defaults
+    const [puttCounts, setPuttCounts] = useState(() => {
+        const savedPutts = localStorage.getItem('puttCounts');
+        return savedPutts ? JSON.parse(savedPutts) : Array(18).fill(0);
+    });
+
+    const [girCounts, setGirCounts] = useState(() => {
+        const savedGirs = localStorage.getItem('girCounts');
+        return savedGirs ? JSON.parse(savedGirs) : Array(18).fill(false);
+    });
+
+    useEffect(() => {
+        if (resetPuttsAndGIR) {
+            setPuttCounts(Array(18).fill(0));
+            setGirCounts(Array(18).fill(false));
+        }
+    }, [resetPuttsAndGIR]);
+
+
+    // Save putts and GIRs to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('puttCounts', JSON.stringify(puttCounts));
+    }, [puttCounts]);
+
+    useEffect(() => {
+        localStorage.setItem('girCounts', JSON.stringify(girCounts));
+    }, [girCounts]);
 
     const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
         // Distribute handicap strokes according to hole difficulty
