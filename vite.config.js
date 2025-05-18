@@ -16,7 +16,7 @@ export default defineConfig({
     host: true,
     cors: true,
     hmr: {
-      host: 'developer.kknds.com'
+      host: '0.0.0.0'
     },
   }
 })
