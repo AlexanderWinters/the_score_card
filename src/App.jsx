@@ -14,6 +14,7 @@ import RoundsHistory from './components/RoundsHistory'
 import { AuthProvider, useAuth } from './components/AuthContext'
 import {checkDatabase, fetchAllCourses, fetchCourseById, seedDatabase} from './api/courseApi'
 import { saveRound } from './api/authApi'
+import SettingsPanel from "./components/SettingsPanel.jsx";
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -352,37 +353,15 @@ function MainApp() {
             <div className="app-header">
                 <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
                 <h1>The Card</h1>
-                <div className="header-links">
-                    {isLoggedIn && (
-                        <>
-                        <button
-                            className="save-round-button"
-                            onClick={handleSaveRound}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? 'Saving...' : 'Save Round'}
-                        </button>
-                        <button
-                        className="logout-button"
-                        onClick={handleLogout}
-                >
-                    Logout
-                </button>
-            </>
-
-            )}
-                    <button
-                        className="reset-session-button"
-                        onClick={resetSession}
-                        title="Reset current scorecard"
-                    >
-                        New Round
-                    </button>
-                    {isLoggedIn && (
-                        <Link to="/rounds" className="rounds-link">My Rounds</Link>
-                    )}
-                    <Link to="/admin" className="admin-link">Admin</Link>
-                </div>
+                <SettingsPanel
+                    isLoggedIn={isLoggedIn}
+                    logout={handleLogout}
+                    resetSession={resetSession}
+                    handicap={handicap}
+                    setHandicap={setHandicap}
+                    handleSaveRound={handleSaveRound}
+                    isSaving={isSaving}
+                />
             </div>
 
             {saveError && <div className="save-error">{saveError}</div>}
@@ -407,7 +386,6 @@ function MainApp() {
                 />
             </div>
 
-            <HandicapInput handicap={handicap} setHandicap={setHandicap} />
 
             <ScoreCard
                 scores={scores}

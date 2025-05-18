@@ -49,6 +49,38 @@
   --under-par: #2ecc71;          /* Keep same color for under par */
 }
 
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.app-header h1 {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+/* Update responsive styles */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .app-header .theme-toggle {
+    align-self: flex-end;
+  }
+
+  .app-header .settings-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
