@@ -57,29 +57,6 @@ function AdminPage() {
         setTeeBoxes(updatedTeeBoxes);
     };
 
-    // Generate holes for a tee box
-    const generateHoles = (teeBoxIndex) => {
-        // Generate 18 holes with default values
-        const updatedTeeBoxes = [...teeBoxes];
-        const holes = [];
-
-        // Base values for hole generation
-        const baseDistance = 150 + (Math.random() * 50);
-        const distanceStep = 10 + (Math.random() * 10);
-
-        for (let i = 1; i <= 18; i++) {
-            holes.push({
-                number: i,
-                distance: Math.round(baseDistance + (i * distanceStep) + (Math.random() * 30 - 15)),
-                par: i % 4 === 0 ? 5 : (i % 4 === 2 ? 3 : 4),
-                hcp_index: ((i * 7) % 18) + 1
-            });
-        }
-
-        updatedTeeBoxes[teeBoxIndex].holes = holes;
-        setTeeBoxes(updatedTeeBoxes);
-    };
-
     // Submit the form
     const handleSubmitForm = async (e) => {
         e.preventDefault();
@@ -97,18 +74,48 @@ function AdminPage() {
                 throw new Error('At least one tee box is required');
             }
 
-            // Validate tee boxes
-            const validTeeBoxes = teeBoxes.filter(tee => tee.name.trim() && tee.color.trim() && tee.holes.length === 18);
+
+// Update this part in the handleSubmitForm function
+// Validate tee boxes
+            const validTeeBoxes = teeBoxes.filter(tee => {
+                // Check name and color
+                if (!tee.name.trim() || !tee.color.trim()) return false;
+
+                // Check if has 18 holes
+                if (tee.holes.length !== 18) return false;
+
+                // Check that all holes have valid data
+                return tee.holes.every(hole =>
+                    hole.number > 0 &&
+                    hole.distance > 0 &&
+                    hole.par >= 3 &&
+                    hole.par <= 5 &&
+                    hole.hcp_index >= 1 &&
+                    hole.hcp_index <= 18
+                );
+            });
+
             if (validTeeBoxes.length === 0) {
-                throw new Error('Each tee box must have a name, color, and 18 holes');
+                throw new Error('Each tee box must have a name, color, and 18 holes with valid details');
             }
+
+            const cleanedTeeBoxes = validTeeBoxes.map(teeBox => ({
+                ...teeBox,
+                holes: teeBox.holes.map(hole => ({
+                    number: hole.number,
+                    distance: hole.distance,
+                    par: hole.par,
+                    hcp_index: hole.hcp_index
+                    // parManuallySet is intentionally omitted
+                }))
+            }));
 
             // Prepare course data
             const courseData = {
                 name: courseName,
                 location: courseLocation,
                 description: courseDescription,
-                teeBoxes: validTeeBoxes
+                teeBoxes: cleanedTeeBoxes
             };
 
             // Submit the course
@@ -294,21 +301,121 @@ function AdminPage() {
                                         </div>
                                     </div>
 
+                                    // Modify the holes section in the AdminPage.jsx file
+                                    // Replace the existing holes-section with this implementation
+
                                     <div className="holes-section">
                                         <div className="holes-header">
                                             <h5>Holes ({teeBox.holes.length}/18)</h5>
-                                            <button
-                                                type="button"
-                                                className="generate-button"
-                                                onClick={() => generateHoles(index)}
-                                            >
-                                                Auto-Generate Holes
-                                            </button>
                                         </div>
 
-                                        {teeBox.holes.length > 0 && (
-                                            <div className="holes-summary">
-                                                Total Distance: {teeBox.holes.reduce((sum, hole) => sum + hole.distance, 0)} yards
+                                        {teeBox.holes.length > 0 ? (
+                                            <div className="holes-table">
+                                                <table className="hole-details-table">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Hole</th>
+                                                        <th>Distance (meters)</th>
+                                                        <th>Par</th>
+                                                        <th>Handicap Index</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {teeBox.holes.map((hole, holeIndex) => (
+                                                        <tr key={holeIndex}>
+                                                            <td>{hole.number}</td>
+                                                            <td>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={hole.distance || ''}
+                                                                    onChange={(e) => {
+                                                                        const distance = Number(e.target.value);
+                                                                        const updatedTeeBoxes = [...teeBoxes];
+                                                                        updatedTeeBoxes[index].holes[holeIndex].distance = distance;
+
+                                                                        // Auto-set par based on distance
+                                                                        if (distance > 0) {
+                                                                            let suggestedPar;
+                                                                            if (distance <= 200) suggestedPar = 3;
+                                                                            else if (distance <= 380) suggestedPar = 4;
+                                                                            else suggestedPar = 5;
+
+                                                                            // Only update par if it wasn't explicitly set before
+                                                                            if (!updatedTeeBoxes[index].holes[holeIndex].parManuallySet) {
+                                                                                updatedTeeBoxes[index].holes[holeIndex].par = suggestedPar;
+                                                                            }
+                                                                        }
+
+                                                                        setTeeBoxes(updatedTeeBoxes);
+                                                                    }}
+                                                                    required
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <select
+                                                                    value={hole.par || 4}
+                                                                    onChange={(e) => {
+                                                                        const updatedTeeBoxes = [...teeBoxes];
+                                                                        updatedTeeBoxes[index].holes[holeIndex].par = Number(e.target.value);
+                                                                        // Mark that par was manually set
+                                                                        updatedTeeBoxes[index].holes[holeIndex].parManuallySet = true;
+                                                                        setTeeBoxes(updatedTeeBoxes);
+                                                                    }}
+                                                                    required
+                                                                >
+                                                                    <option value={3}>3</option>
+                                                                    <option value={4}>4</option>
+                                                                    <option value={5}>5</option>
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    max="18"
+                                                                    value={hole.hcp_index || ''}
+                                                                    onChange={(e) => {
+                                                                        const updatedTeeBoxes = [...teeBoxes];
+                                                                        updatedTeeBoxes[index].holes[holeIndex].hcp_index = Number(e.target.value);
+                                                                        setTeeBoxes(updatedTeeBoxes);
+                                                                    }}
+                                                                    required
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    </tbody>
+                                                </table>
+                                                <div className="holes-summary">
+                                                    Total Distance: {teeBox.holes.reduce((sum, hole) => sum + (hole.distance || 0), 0)} meters
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="add-holes-container">
+                                                <button
+                                                    type="button"
+                                                    className="add-holes-button"
+                                                    onClick={() => {
+                                                        const updatedTeeBoxes = [...teeBoxes];
+                                                        const holes = [];
+
+                                                        for (let i = 1; i <= 18; i++) {
+                                                            holes.push({
+                                                                number: i,
+                                                                distance: 0,
+                                                                par: 4,
+                                                                hcp_index: i,
+                                                                parManuallySet: false // Add flag to track manual par changes
+                                                            });
+                                                        }
+
+                                                        updatedTeeBoxes[index].holes = holes;
+                                                        setTeeBoxes(updatedTeeBoxes);
+                                                    }}
+                                                >
+                                                    Add Holes
+                                                </button>
                                             </div>
                                         )}
                                     </div>
