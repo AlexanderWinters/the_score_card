@@ -1,8 +1,8 @@
-# server.py
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Header, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import sqlite3
 import os
 from contextlib import contextmanager
@@ -10,22 +10,46 @@ from fastapi.responses import JSONResponse
 import json
 import csv
 from io import StringIO
-
+import secrets
+import hashlib
+import datetime
+from jose import jwt, JWTError
+from datetime import datetime, timedelta
+import random
+import string
+from passlib.context import CryptContext
 
 app = FastAPI(title="Golf Course API")
 
+if os.environ.get("ENV") == "production":
+    origins = [
+        "https://your-production-domain.com",
+        # Add other allowed origins
+    ]
+else:
+    # For development, allow all
+    origins = ["*"]
 
-
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins in development
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+
 DB_PATH = 'golf.db'
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    if os.environ.get("ENV") == "production":
+        raise RuntimeError("JWT_SECRET_KEY environment variable must be set in production")
+    else:
+        print("WARNING: Using insecure development key. Never use this in production!")
+        SECRET_KEY = "dev_only_insecure_key_for_testing"
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # Token valid for 1 week
 
 # Database connection context manager
 @contextmanager
@@ -36,6 +60,36 @@ def get_db_connection():
         yield conn
     finally:
         conn.close()
+
+# Authentication models
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    user_key: Optional[str] = None
+
+class UserBase(BaseModel):
+    user_key: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+
+class RoundBase(BaseModel):
+    course_id: int
+    date: str
+    scores: List[int]
+    tee_box_id: int
+
+class RoundCreate(RoundBase):
+    pass
+
+class Round(RoundBase):
+    id: int
+    user_id: int
 
 # Pydantic models for validation and documentation
 class Hole(BaseModel):
@@ -77,6 +131,8 @@ class CourseCreate(BaseModel):
     description: Optional[str] = None
     teeBoxes: List[TeeBoxCreate]
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token")
+
 def initialize_database():
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -115,7 +171,85 @@ def initialize_database():
         )
         ''')
 
+        # Create users table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_key TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # Create rounds table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS rounds (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            course_id INTEGER NOT NULL,
+            tee_box_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            scores TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (course_id) REFERENCES courses (id),
+            FOREIGN KEY (tee_box_id) REFERENCES tee_boxes (id)
+        )
+        ''')
+
         conn.commit()
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Password hashing
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+# Generate a random user key (12 characters)
+def generate_user_key():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+
+# JWT token functions
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# User authentication middleware
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_key: str = payload.get("sub")
+        if user_key is None:
+            raise credentials_exception
+        token_data = TokenData(user_key=user_key)
+    except JWTError:
+        raise credentials_exception
+
+    with get_db_connection() as conn:
+        user = conn.execute(
+            'SELECT * FROM users WHERE user_key = ?',
+            (token_data.user_key,)
+        ).fetchone()
+
+    if user is None:
+        raise credentials_exception
+    return user
 
 @app.on_event("startup")
 async def startup_event():
@@ -126,6 +260,135 @@ async def startup_event():
         # Make sure schema is up to date
         initialize_database()
 
+# Authentication endpoints
+@app.post("/api/register", response_model=Token, status_code=201)
+async def register_user(user_create: UserCreate):
+    """Register a new user with a key and password"""
+    with get_db_connection() as conn:
+        # Check if user_key already exists
+        existing_user = conn.execute(
+            'SELECT * FROM users WHERE user_key = ?',
+            (user_create.user_key,)
+        ).fetchone()
+
+        if existing_user:
+            raise HTTPException(
+                status_code=400,
+                detail="User key already registered"
+            )
+
+        # Hash the password and store the user
+        password_hash = get_password_hash(user_create.password)
+
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO users (user_key, password_hash) VALUES (?, ?)',
+            (user_create.user_key, password_hash)
+        )
+        conn.commit()
+
+        # Generate access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user_create.user_key}, expires_delta=access_token_expires
+        )
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/api/generate-key")
+async def generate_key():
+    """Generate a random user key"""
+    return {"user_key": generate_user_key()}
+
+@app.post("/api/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Login endpoint to get an access token"""
+    with get_db_connection() as conn:
+        user = conn.execute(
+            'SELECT * FROM users WHERE user_key = ?',
+            (form_data.username,)  # OAuth2 uses username field
+        ).fetchone()
+
+        if not user or not verify_password(form_data.password, user["password_hash"]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect user key or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": form_data.username}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+
+# User rounds management
+@app.post("/api/rounds", status_code=201)
+async def create_round(round_data: RoundCreate, current_user: dict = Depends(get_current_user)):
+    """Save a completed round for the current user"""
+
+    # Only save rounds with at least 9 holes completed
+    scores = round_data.scores
+    completed_holes = sum(1 for score in scores if score > 0)
+
+    if completed_holes < 9:
+        raise HTTPException(
+            status_code=400,
+            detail="Round must have at least 9 completed holes"
+        )
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        # Convert scores list to JSON string
+        scores_json = json.dumps(round_data.scores)
+
+        cursor.execute(
+            '''INSERT INTO rounds
+               (user_id, course_id, tee_box_id, date, scores)
+               VALUES (?, ?, ?, ?, ?)''',
+            (current_user["id"], round_data.course_id, round_data.tee_box_id,
+             round_data.date, scores_json)
+        )
+
+        conn.commit()
+        round_id = cursor.lastrowid
+
+        return {"id": round_id, "message": "Round saved successfully"}
+
+@app.get("/api/rounds")
+async def get_user_rounds(current_user: dict = Depends(get_current_user)):
+    """Get all rounds for the current user"""
+    with get_db_connection() as conn:
+        rounds_data = conn.execute(
+            '''SELECT r.id, r.course_id, r.tee_box_id, r.date, r.scores,
+                      c.name as course_name, t.name as tee_name, t.color as tee_color
+               FROM rounds r
+               JOIN courses c ON r.course_id = c.id
+               JOIN tee_boxes t ON r.tee_box_id = t.id
+               WHERE r.user_id = ?
+               ORDER BY r.date DESC''',
+            (current_user["id"],)
+        ).fetchall()
+
+        result = []
+        for round_data in rounds_data:
+            scores = json.loads(round_data["scores"])
+            result.append({
+                "id": round_data["id"],
+                "course_id": round_data["course_id"],
+                "course_name": round_data["course_name"],
+                "tee_box_id": round_data["tee_box_id"],
+                "tee_name": round_data["tee_name"],
+                "tee_color": round_data["tee_color"],
+                "date": round_data["date"],
+                "scores": scores,
+                "total_score": sum(score for score in scores if score > 0)
+            })
+
+        return result
+
+# Existing endpoints
 @app.get("/api/courses", response_model=List[Course])
 async def get_all_courses():
     with get_db_connection() as conn:

@@ -31,8 +31,8 @@ WORKDIR /app/server
 COPY server/ ./
 
 # Install Python dependencies
-RUN pip install --no-cache-dir fastapi uvicorn sqlalchemy pydantic aiosqlite python-multipart
-
+# Install Python dependencies
+RUN pip install -r requirements.txt
 # Copy startup script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh

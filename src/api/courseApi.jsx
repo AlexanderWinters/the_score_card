@@ -15,12 +15,17 @@ export const fetchAllCourses = async () => {
     }
 };
 
+// In api/courseApi.jsx
 export const fetchCourseById = async (courseId) => {
     try {
         const response = await fetch(`/api/courses/${courseId}`);
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            const error = new Error('Network response was not ok');
+            error.status = response.status;
+            throw error;
         }
+
         return await response.json();
     } catch (error) {
         console.error(`Error fetching course ${courseId}:`, error);

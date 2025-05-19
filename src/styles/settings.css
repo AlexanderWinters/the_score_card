@@ -1,0 +1,213 @@
+.settings-container {
+    position: relative;
+}
+
+.settings-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: var(--soft-shadow);
+}
+
+.settings-button svg {
+    fill: white;
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+
+.settings-button:hover {
+    background-color: var(--primary-color-dark);
+    transform: scale(1.05);
+}
+
+.settings-panel {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 320px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.settings-panel.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.settings-header {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.settings-content {
+    padding: 20px;
+}
+
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+.setting-item {
+    margin-bottom: 16px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.settings-action-button {
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-action-button.new-round {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.settings-action-button.new-round:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.settings-action-button.save-round {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.settings-action-button.save-round:hover {
+    background-color: var(--success-hover);
+}
+
+.settings-action-button.my-rounds {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.settings-action-button.my-rounds:hover {
+    background-color: #16a085;
+}
+
+.settings-action-button.logout {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.settings-action-button.logout:hover {
+    background-color: #c0392b;
+}
+
+.settings-action-button.admin {
+    background-color: #9b59b6;
+    color: white;
+}
+
+.settings-action-button.admin:hover {
+    background-color: #8e44ad;
+}
+
+.settings-action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Make the HandicapInput look good in the settings panel */
+.settings-panel .handicap-input {
+    margin: 0;
+    padding: 12px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .settings-panel {
+        width: 280px;
+        max-height: 70vh;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .settings-action-button {
+        width: 100%;
+    }
+}

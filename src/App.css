@@ -21,6 +21,12 @@
   --over-par: #e74c3c;           /* Red for over par */
   --under-par: #2ecc71;          /* Green for under par */
   --transition-speed: 0.2s;
+  --success-color: #4caf50;
+  --success-hover: #388e3c;
+  --error-background: #ffebee;
+  --error-color: #d32f2f;
+  --card-background: #1d2a2f;
+
 }
 
 [data-theme="dark"] {
@@ -42,6 +48,38 @@
   --summary-border: #34495e;
   --over-par: #e74c3c;           /* Keep same color for over par */
   --under-par: #2ecc71;          /* Keep same color for under par */
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.app-header h1 {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+/* Update responsive styles */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .app-header .theme-toggle {
+    align-self: flex-end;
+  }
+
+  .app-header .settings-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
 }
 
 body {
@@ -394,4 +432,20 @@ h1::after {
 
 .reset-session-button:hover {
   background-color: var(--primary-color-dark);
+}
+
+.logout-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 8px;
+  transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
 }
