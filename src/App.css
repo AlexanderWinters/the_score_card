@@ -26,6 +26,8 @@
   --error-background: #ffebee;
   --error-color: #d32f2f;
   --card-background: #1d2a2f;
+  --font-family: 'Quicksand', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+
 
 }
 
@@ -87,12 +89,13 @@ body {
   padding: 0;
   background-color: var(--body-bg);
   color: var(--text-color);
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-family);
   display: flex;
   justify-content: center;
   min-height: 100vh;
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
+
 
 #root {
   width: 100%;
