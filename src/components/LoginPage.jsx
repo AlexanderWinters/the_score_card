@@ -70,12 +70,12 @@ function LoginPage() {
                 </form>
 
                 <div className="signup-link">
-                    <p>Don't have an account?</p>
+                    <p>Don't have a key?</p>
                     <button
                         onClick={() => navigate('/signup')}
                         className="link-button"
                     >
-                        Create Account
+                        Create Key
                     </button>
                 </div>
             </div>

@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5100:80"  # Forward host port 8080 to container port 80
+      - "5100:80"
     volumes:
-      - sqlite-data:/app/server/data  # Persist SQLite database
+      - sqlite-data:/app/server/data
     environment:
       - NODE_ENV=production
       - DATABASE_PATH=/app/server/data/golf.db
@@ -15,4 +15,4 @@ services:
 
 
 volumes:
-  sqlite-data:  # Named volume for database persistence
+  sqlite-data:
