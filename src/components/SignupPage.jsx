@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateUserKey, registerUser } from '../api/authApi';
 import { useAuth } from './AuthContext';
-import '../styles/LoginPage.css';
+import '../styles/loginPage.css';
 
 function SignupPage() {
     const [userKey, setUserKey] = useState('');
