@@ -1,7 +1,7 @@
 // src/components/Navigation.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import '../styles/Navigation.css';
+import '../styles/navigation.css';
 
 function Navigation() {
     const { isLoggedIn, logout } = useAuth();

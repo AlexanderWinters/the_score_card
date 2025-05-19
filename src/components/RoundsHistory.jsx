@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getUserRounds } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
-import '../styles/RoundsHistory.css';
+import '../styles/roundsHistory.css';
 
 function RoundsHistory() {
     const [rounds, setRounds] = useState([]);
