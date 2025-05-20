@@ -30,16 +30,23 @@ A lightweight, modern golf scorecard application that allows golfers to track th
    cd golf-scorecard
    ```
 
-2. Install dependencies:
+2. Install frontend dependencies:
    ```bash
    npm install
    # or
    yarn
    ```
-
-3. Start the development server:
+3. Install backend dependencies:
    ```bash
-   python3 server.py
+   cd server
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements
+   ```
+
+3. Start the dev server:
+   ```bash
+   python3 server/server.py #Make sure the venv is active!
    vite
    ```
 
