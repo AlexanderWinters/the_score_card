@@ -40,12 +40,29 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
         const newPuttCounts = [...puttCounts];
         newPuttCounts[index] = value;
         setPuttCounts(newPuttCounts);
+
+        // Auto-select GIR when par is achieved with 2 putts
+        const par = courseData.holes[index].par;
+        if (scores[index] === par && value === 2) {
+            updateGirCount(index, true);
+        }
     };
 
     const updateGirCount = (index, value) => {
         const newGirCounts = [...girCounts];
         newGirCounts[index] = value;
         setGirCounts(newGirCounts);
+    };
+
+    // Modified to check for par + 2 putts when score is updated
+    const handleScoreUpdate = (index, value) => {
+        updateScore(index, value);
+
+        // Check if this is par with 2 putts
+        const par = courseData.holes[index].par;
+        if (value === par && puttCounts[index] === 2) {
+            updateGirCount(index, true);
+        }
     };
 
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
@@ -186,7 +203,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                                                         <input
                                                             type="number"
                                                             value={scores[index] === 0 ? '' : scores[index]}
-                                                            onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
+                                                            onChange={(e) => handleScoreUpdate(index, Number(e.target.value) || 0)}
                                                             min="1"
                                                             max="20"
                                                             placeholder="-"
@@ -198,7 +215,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                                                     <input
                                                         type="number"
                                                         value={scores[index] === 0 ? '' : scores[index]}
-                                                        onChange={(e) => updateScore(index, Number(e.target.value) || 0)}
+                                                        onChange={(e) => handleScoreUpdate(index, Number(e.target.value) || 0)}
                                                         min="1"
                                                         max="20"
                                                         placeholder="-"
