@@ -27,6 +27,30 @@
     background-color: var(--light-bg);
 }
 
+/* Styling for the hole number row */
+.hole-number-row {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--app-bg);
+    height: 32px;
+}
+
+.hole-number-row .hole-column {
+    padding: 6px 5px;
+}
+
+.hole-number-row .hole-number {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.hole-label {
+    background-color: transparent !important;
+    color: var(--text-muted) !important;
+    font-weight: normal !important;
+    font-size: 12px;
+    padding: 6px 10px !important;
+}
+
 .row-label {
     min-width: 60px;
     padding: 12px 10px;
@@ -56,12 +80,21 @@
 .scorecard-body {
     background-color: var(--app-bg);
 }
-.scorecard-player {
+
+/* New combined header banner */
+.scorecard-header-banner {
     background-color: var(--secondary-color);
     color: white;
     padding: 10px 15px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    border-radius: 6px 6px 0 0;
+}
+
+.player-info {
+    font-size: 14px;
+    font-weight: 500;
 }
 
 /* Add these styles to your scorecard.css file */
@@ -111,8 +144,6 @@
     align-items: center;
     margin: 0 auto;
 }
-
-
 
 .score-input {
     width: 34px;
@@ -196,7 +227,6 @@
     pointer-events: none;
     z-index: 1;
 }
-
 
 /* Double circle for eagles (existing circle plus additional styling) */
 .score-double-circle {

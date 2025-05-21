@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import '../styles/scorecard.css';
 
-function ScoreCard({ scores, updateScore, courseData, handicap, playerName, resetPuttsAndGIR
+function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, resetPuttsAndGIR
                    }) {
     // Initialize from localStorage or use defaults
     const [puttCounts, setPuttCounts] = useState(() => {
@@ -31,10 +31,10 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
         localStorage.setItem('girCounts', JSON.stringify(girCounts));
     }, [girCounts]);
 
-    const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
-        // Distribute handicap strokes according to hole difficulty
-        return hcpIndex <= playerHandicap ? 1 : 0;
-    };
+    // const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
+    //     // Distribute handicap strokes according to hole difficulty
+    //     return hcpIndex <= playerHandicap ? 1 : 0;
+    // };
 
     const updatePuttCount = (index, value) => {
         const newPuttCounts = [...puttCounts];
@@ -111,21 +111,16 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
 
     return (
         <div className="scorecard-container">
-            <div className="scorecard-player">
-                <span className="player-label">Player:</span>
-                <span className="player-name">{playerName}</span>
-            </div>
-
-            <div className="course-name-banner">
-                {courseData.name}
+            <div className="scorecard-header-banner">
+                <div className="player-info">{playerName} • {courseData.name}</div>
             </div>
 
             <div className="scorecard-scroll">
                 <div className="scorecard">
                     <div className="scorecard-table">
-                        {/* Hole row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">Hole</div>
+                        {/* Minimal Hole row */}
+                        <div className="scorecard-row hole-number-row">
+                            <div className="row-label hole-label">Hole</div>
                             {courseData.holes.map((hole) => (
                                 <div key={hole.number} className="hole-column">
                                     <div className="hole-number">{hole.number}</div>
@@ -133,21 +128,6 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                             ))}
                             <div className="hole-column total-column">
                                 <div className="hole-number">Total</div>
-                            </div>
-                        </div>
-
-                        {/* Meters row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">Meters</div>
-                            {courseData.holes.map((hole, index) => (
-                                <div key={index} className="hole-column">
-                                    <div className="hole-distance">{hole.distance}</div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-distance">
-                                    {courseData.holes.reduce((sum, hole) => sum + hole.distance, 0)}
-                                </div>
                             </div>
                         </div>
 
@@ -165,8 +145,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                                 </div>
                             </div>
                         </div>
-
-                        {/* HCP row */}
+                        {/* HCP row
                         <div className="scorecard-row">
                             <div className="row-label">HCP</div>
                             {courseData.holes.map((hole, index) => {
@@ -184,7 +163,21 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                                         Math.min(handicap, 18)}
                                 </div>
                             </div>
-                        </div>
+                        </div>*/}
+                        {/* Meters row
+                        <div className="scorecard-row">
+                            <div className="row-label">Meters</div>
+                            {courseData.holes.map((hole, index) => (
+                                <div key={index} className="hole-column">
+                                    <div className="hole-distance">{hole.distance}</div>
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                <div className="hole-distance">
+                                    {courseData.holes.reduce((sum, hole) => sum + hole.distance, 0)}
+                                </div>
+                            </div>
+                        </div>*/}
 
                         {/* Score row */}
                         <div className="scorecard-row">
