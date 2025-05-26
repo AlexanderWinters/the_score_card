@@ -311,3 +311,20 @@
     color: white;
     font-weight: 500;
 }
+
+/* Add these new styles to your existing scorecard.css file */
+
+.main-scorecard {
+    margin-bottom: 20px;
+}
+
+.details-header {
+    margin-top: 30px;
+    background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+}
+
+.details-scorecard {
+    border-top: 2px solid var(--border-color, #ccc);
+}
+
+/* You may need to adjust spacing and other details based on your existing CSS */
