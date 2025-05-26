@@ -83,6 +83,10 @@ class RoundBase(BaseModel):
     date: str
     scores: List[int]
     tee_box_id: int
+    putts: Optional[List[int]] = None
+    gir: Optional[List[bool]] = None
+    fairways: Optional[List[bool]] = None
+    bunkers: Optional[List[int]] = None
 
 class RoundCreate(RoundBase):
     pass
@@ -181,7 +185,7 @@ def initialize_database():
         )
         ''')
 
-        # Create rounds table
+# Create rounds table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS rounds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -190,12 +194,16 @@ def initialize_database():
             tee_box_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             scores TEXT NOT NULL,
+            putts TEXT,
+            gir TEXT,
+            fairways TEXT,
+            bunkers TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id),
             FOREIGN KEY (course_id) REFERENCES courses (id),
-            FOREIGN KEY (tee_box_id) REFERENCES tee_boxes (id)
-        )
-        ''')
+             FOREIGN KEY (tee_box_id) REFERENCES tee_boxes (id)
+         )
+         ''')
 
         conn.commit()
 
@@ -365,12 +373,18 @@ async def create_round(round_data: RoundCreate, current_user: dict = Depends(get
         # Convert scores list to JSON string
         scores_json = json.dumps(round_data.scores)
 
+        # Convert stats to JSON strings if they exist
+        putts_json = json.dumps(round_data.putts) if round_data.putts else None
+        gir_json = json.dumps(round_data.gir) if round_data.gir else None
+        fairways_json = json.dumps(round_data.fairways) if round_data.fairways else None
+        bunkers_json = json.dumps(round_data.bunkers) if round_data.bunkers else None
+
         cursor.execute(
             '''INSERT INTO rounds
-               (user_id, course_id, tee_box_id, date, scores)
-               VALUES (?, ?, ?, ?, ?)''',
+               (user_id, course_id, tee_box_id, date, scores, putts, gir, fairways, bunkers)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (current_user["id"], round_data.course_id, round_data.tee_box_id,
-             round_data.date, scores_json)
+             round_data.date, scores_json, putts_json, gir_json, fairways_json, bunkers_json)
         )
 
         conn.commit()
@@ -384,10 +398,11 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
     with get_db_connection() as conn:
         rounds_data = conn.execute(
             '''SELECT r.id, r.course_id, r.tee_box_id, r.date, r.scores,
+                      r.putts, r.gir, r.fairways, r.bunkers,
                       c.name as course_name, t.name as tee_name, t.color as tee_color
                FROM rounds r
-               JOIN courses c ON r.course_id = c.id
-               JOIN tee_boxes t ON r.tee_box_id = t.id
+                        JOIN courses c ON r.course_id = c.id
+                        JOIN tee_boxes t ON r.tee_box_id = t.id
                WHERE r.user_id = ?
                ORDER BY r.date DESC''',
             (current_user["id"],)
@@ -396,6 +411,13 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
         result = []
         for round_data in rounds_data:
             scores = json.loads(round_data["scores"])
+
+            # Parse statistics if they exist
+            putts = json.loads(round_data["putts"]) if round_data["putts"] else None
+            gir = json.loads(round_data["gir"]) if round_data["gir"] else None
+            fairways = json.loads(round_data["fairways"]) if round_data["fairways"] else None
+            bunkers = json.loads(round_data["bunkers"]) if round_data["bunkers"] else None
+
             result.append({
                 "id": round_data["id"],
                 "course_id": round_data["course_id"],
@@ -405,6 +427,10 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
                 "tee_color": round_data["tee_color"],
                 "date": round_data["date"],
                 "scores": scores,
+                "putts": putts,
+                "gir": gir,
+                "fairways": fairways,
+                "bunkers": bunkers,
                 "total_score": sum(score for score in scores if score > 0)
             })
 

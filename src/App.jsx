@@ -306,11 +306,21 @@ function MainApp() {
         try {
             const today = new Date().toISOString().split('T')[0];
 
+            // Get statistics from localStorage
+            const puttCounts = JSON.parse(localStorage.getItem('puttCounts') || '[]');
+            const girCounts = JSON.parse(localStorage.getItem('girCounts') || '[]');
+            const fairwayHits = JSON.parse(localStorage.getItem('fairwayHits') || '[]');
+            const bunkerCounts = JSON.parse(localStorage.getItem('bunkerCounts') || '[]');
+
             await saveRound({
                 course_id: selectedCourseId,
                 tee_box_id: selectedTeeBoxId,
                 date: today,
-                scores: scores
+                scores: scores,
+                putts: puttCounts,
+                gir: girCounts,
+                fairways: fairwayHits,
+                bunkers: bunkerCounts
             });
 
             // Reset the form after successful save
