@@ -1,30 +1,36 @@
-export const generateUserKey = async () => {
-    try {
-        const response = await fetch('/api/generate-key', {
-            method: 'POST',  // Change from GET to POST
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error('Failed to generate user key');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error generating user key:', error);
-        throw error;
-    }
-};
+// export const generateUserKey = async () => {
+//     try {
+//         const response = await fetch('/api/generate-key', {
+//             method: 'POST',  // Change from GET to POST
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//         });
+//         if (!response.ok) {
+//             throw new Error('Failed to generate user key');
+//         }
+//         return await response.json();
+//     } catch (error) {
+//         console.error('Error generating user key:', error);
+//         throw error;
+//     }
+// };
 
-export const registerUser = async (userKey, password) => {
+export const registerUser = async (email, password) => {
     try {
+        // Simple email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new Error('Invalid email format');
+        }
+
         const response = await fetch('/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_key: userKey,
+                email: email,
                 password: password
             }),
         });
@@ -41,11 +47,17 @@ export const registerUser = async (userKey, password) => {
     }
 };
 
-export const loginUser = async (userKey, password) => {
+export const loginUser = async (email, password) => {
     try {
+        // Simple email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new Error('Invalid email format');
+        }
+
         // Create form data for OAuth2 token endpoint
         const formData = new URLSearchParams();
-        formData.append('username', userKey);
+        formData.append('username', email); // Changed from userKey to email
         formData.append('password', password);
 
         const response = await fetch('/api/token', {

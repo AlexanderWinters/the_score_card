@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext';
 import '../styles/loginPage.css';
 
 function LoginPage() {
-    const [userKey, setUserKey] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ function LoginPage() {
         setIsLoading(true);
 
         try {
-            const result = await loginUser(userKey, password);
+            const result = await loginUser(email, password);
             login(result.access_token);
             navigate('/');
         } catch (err) {
@@ -37,13 +37,13 @@ function LoginPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="userKey">User Key</label>
+                        <label htmlFor="email">Email Address</label>
                         <input
-                            type="text"
-                            id="userKey"
-                            value={userKey}
-                            onChange={(e) => setUserKey(e.target.value)}
-                            placeholder="Enter your user key"
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email address"
                             required
                         />
                     </div>
@@ -70,12 +70,12 @@ function LoginPage() {
                 </form>
 
                 <div className="signup-link">
-                    <p>Don't have a key?</p>
+                    <p>Don't have an account?</p>
                     <button
                         onClick={() => navigate('/signup')}
                         className="link-button"
                     >
-                        Create Key
+                        Sign Up
                     </button>
                 </div>
             </div>

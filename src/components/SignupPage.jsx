@@ -1,31 +1,18 @@
 // src/components/SignupPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateUserKey, registerUser } from '../api/authApi';
+import { registerUser } from '../api/authApi';
 import { useAuth } from './AuthContext';
 import '../styles/loginPage.css';
 
 function SignupPage() {
-    const [userKey, setUserKey] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [isGeneratingKey, setIsGeneratingKey] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
-
-    const handleGenerateKey = async () => {
-        setIsGeneratingKey(true);
-        try {
-            const result = await generateUserKey();
-            setUserKey(result.user_key);
-        } catch (err) {
-            setError('Failed to generate user key');
-        } finally {
-            setIsGeneratingKey(false);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -36,11 +23,18 @@ function SignupPage() {
             return;
         }
 
+        // Basic email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
         setError('');
         setIsLoading(true);
 
         try {
-            const result = await registerUser(userKey, password);
+            const result = await registerUser(email, password);
             login(result.access_token);
             navigate('/');
         } catch (err) {
@@ -58,28 +52,15 @@ function SignupPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="userKey">User Key</label>
-                        <div className="user-key-input">
-                            <input
-                                type="text"
-                                id="userKey"
-                                value={userKey}
-                                onChange={(e) => setUserKey(e.target.value)}
-                                placeholder="Generate or enter a key"
-                                required
-                                maxLength={12}
-                                disabled={isGeneratingKey}
-                            />
-                            <button
-                                type="button"
-                                onClick={handleGenerateKey}
-                                className="generate-key-button"
-                                disabled={isGeneratingKey}
-                            >
-                                {isGeneratingKey ? 'Generating...' : 'Generate Key'}
-                            </button>
-                        </div>
-                        <small>This will be your unique identifier. Save it carefully!</small>
+                        <label htmlFor="email">Email Address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email address"
+                            required
+                        />
                     </div>
 
                     <div className="form-group">

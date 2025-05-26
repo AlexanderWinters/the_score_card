@@ -67,10 +67,10 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    user_key: Optional[str] = None
+    email: Optional[str] = None
 
 class UserBase(BaseModel):
-    user_key: str
+    email: str
 
 class UserCreate(UserBase):
     password: str
@@ -175,7 +175,7 @@ def initialize_database():
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_key TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -234,22 +234,29 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_key: str = payload.get("sub")
-        if user_key is None:
+        email: str = payload.get("sub")
+        if email is None:
             raise credentials_exception
-        token_data = TokenData(user_key=user_key)
+        token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
 
     with get_db_connection() as conn:
         user = conn.execute(
-            'SELECT * FROM users WHERE user_key = ?',
-            (token_data.user_key,)
+            'SELECT * FROM users WHERE email = ?',
+            (token_data.email,)
         ).fetchone()
 
     if user is None:
         raise credentials_exception
     return user
+
+def validate_email(email: str) -> bool:
+    """Basic email validation using a simple regex pattern"""
+    import re
+    pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    return re.match(pattern, email) is not None
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -263,18 +270,25 @@ async def startup_event():
 # Authentication endpoints
 @app.post("/api/register", response_model=Token, status_code=201)
 async def register_user(user_create: UserCreate):
-    """Register a new user with a key and password"""
+    """Register a new user with an email and password"""
+    # Validate email format
+    if not validate_email(user_create.email):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email format"
+        )
+
     with get_db_connection() as conn:
-        # Check if user_key already exists
+        # Check if email already exists
         existing_user = conn.execute(
-            'SELECT * FROM users WHERE user_key = ?',
-            (user_create.user_key,)
+            'SELECT * FROM users WHERE email = ?',
+            (user_create.email,)
         ).fetchone()
 
         if existing_user:
             raise HTTPException(
                 status_code=400,
-                detail="User key already registered"
+                detail="Email already registered"
             )
 
         # Hash the password and store the user
@@ -282,37 +296,44 @@ async def register_user(user_create: UserCreate):
 
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO users (user_key, password_hash) VALUES (?, ?)',
-            (user_create.user_key, password_hash)
+            'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+            (user_create.email, password_hash)
         )
         conn.commit()
 
         # Generate access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user_create.user_key}, expires_delta=access_token_expires
+            data={"sub": user_create.email}, expires_delta=access_token_expires
         )
 
         return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/api/generate-key")
-async def generate_key():
-    """Generate a random user key"""
-    return {"user_key": generate_user_key()}
+# @app.post("/api/generate-key")
+# async def generate_key():
+#     """Generate a random user key"""
+#     return {"user_key": generate_user_key()}
 
 @app.post("/api/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Login endpoint to get an access token"""
+    """Login endpoint to get an access token using email and password"""
+    # Validate email format
+    if not validate_email(form_data.username):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email format"
+        )
+
     with get_db_connection() as conn:
         user = conn.execute(
-            'SELECT * FROM users WHERE user_key = ?',
-            (form_data.username,)  # OAuth2 uses username field
+            'SELECT * FROM users WHERE email = ?',
+            (form_data.username,)  # OAuth2 uses username field for the email
         ).fetchone()
 
         if not user or not verify_password(form_data.password, user["password_hash"]):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect user key or password",
+                detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
@@ -321,6 +342,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             data={"sub": form_data.username}, expires_delta=access_token_expires
         )
         return {"access_token": access_token, "token_type": "bearer"}
+
 
 # User rounds management
 @app.post("/api/rounds", status_code=201)
