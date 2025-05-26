@@ -327,4 +327,49 @@
     border-top: 2px solid var(--border-color, #ccc);
 }
 
+.fairway-row {
+    background-color: var(--light-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+.fairway-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 5px;
+}
+
+.row-label.fairway-label {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.fairway-toggle {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    color: white;
+    box-shadow: var(--soft-shadow);
+}
+
+.fairway-hit {
+    background-color: var(--under-par);
+    border: 1px solid var(--under-par);
+}
+
+.fairway-miss {
+    background-color: var(--light-bg);
+    border: 1px solid var(--input-border);
+}
+
+.fairway-toggle:hover {
+    transform: scale(1.05);
+}
 /* You may need to adjust spacing and other details based on your existing CSS */
