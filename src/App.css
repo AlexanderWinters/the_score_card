@@ -5,7 +5,8 @@
   --secondary-color: #2ecc71;    /* Mint green secondary */
   --accent-color: #1abc9c;       /* Teal accent */
   --text-color: #2c3e50;         /* Dark slate for text */
-  --text-light: #7f8c8d;         /* Lighter text for secondary info */
+  --text-light: #7f8c8d;
+  --text-secondary: #95a5a6;
   --light-bg: #f5f9fa;           /* Very light blue-tinted background */
   --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
   --soft-shadow: 0 4px 6px rgba(50, 50, 93, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -27,8 +28,7 @@
   --error-color: #d32f2f;
   --card-background: #1d2a2f;
   --font-family: 'Quicksand', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-
-
+  --disabled-color: #b2bec3;
 }
 
 [data-theme="dark"] {
@@ -38,6 +38,7 @@
   --accent-color: #00b894;       /* Darker teal accent for dark mode */
   --text-color: #ecf0f1;
   --text-light: #bdc3c7;
+  --text-secondary: #a0a9ab;
   --light-bg: #2c3e50;
   --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
   --soft-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -49,7 +50,8 @@
   --input-bg: #2c3e50;
   --summary-border: #34495e;
   --over-par: #e74c3c;           /* Keep same color for over par */
-  --under-par: #2ecc71;          /* Keep same color for under par */
+  --under-par: #2ecc71;
+  --disabled-color: #636e72;
 }
 
 .app-header {
