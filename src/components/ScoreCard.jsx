@@ -20,6 +20,12 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         return savedFairways ? JSON.parse(savedFairways) : Array(18).fill(false);
     });
 
+    // Add state for bunker hits
+    const [bunkerCounts, setBunkerCounts] = useState(() => {
+        const savedBunkers = localStorage.getItem('bunkerCounts');
+        return savedBunkers ? JSON.parse(savedBunkers) : Array(18).fill(0);
+    });
+
     // State to track the current active hole
     const [currentHole, setCurrentHole] = useState(null);
 
@@ -37,11 +43,12 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
             setPuttCounts(Array(18).fill(0));
             setGirCounts(Array(18).fill(false));
             setFairwayHits(Array(18).fill(false));
+            setBunkerCounts(Array(18).fill(0));
         }
     }, [resetPuttsAndGIR]);
 
 
-    // Save putts, GIRs, and fairway hits to localStorage whenever they change
+    // Save data to localStorage whenever they change
     useEffect(() => {
         localStorage.setItem('puttCounts', JSON.stringify(puttCounts));
     }, [puttCounts]);
@@ -53,6 +60,10 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     useEffect(() => {
         localStorage.setItem('fairwayHits', JSON.stringify(fairwayHits));
     }, [fairwayHits]);
+
+    useEffect(() => {
+        localStorage.setItem('bunkerCounts', JSON.stringify(bunkerCounts));
+    }, [bunkerCounts]);
 
     // const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
     //     // Distribute handicap strokes according to hole difficulty
@@ -69,6 +80,12 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         if (scores[index] === par && value === 2) {
             updateGirCount(index, true);
         }
+    };
+
+    const updateBunkerCount = (index, value) => {
+        const newBunkerCounts = [...bunkerCounts];
+        newBunkerCounts[index] = value;
+        setBunkerCounts(newBunkerCounts);
     };
 
     const updateGirCount = (index, value) => {
@@ -97,6 +114,7 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
     const totalGirs = girCounts.filter(gir => gir).length;
     const totalFairways = fairwayHits.filter(hit => hit).length;
+    const totalBunkers = bunkerCounts.reduce((sum, count) => sum + count, 0);
 
     // Enhanced function to determine the score type compared to par
     const getScoreType = (score, par) => {
@@ -306,6 +324,27 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
                             ))}
                             <div className="hole-column total-column">
                                 {totalGirs}
+                            </div>
+                        </div>
+
+                        {/* Bunker row */}
+                        <div className="scorecard-row bunker-row">
+                            <div className="row-label bunker-label">Bunker</div>
+                            {bunkerCounts.map((bunkers, index) => (
+                                <div key={index} className="hole-column bunker-column">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        value={bunkers || ''}
+                                        onChange={(e) => updateBunkerCount(index, parseInt(e.target.value) || 0)}
+                                        className="bunker-input"
+                                        aria-label={`Bunkers hit for hole ${index + 1}`}
+                                    />
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                {totalBunkers}
                             </div>
                         </div>
 
