@@ -14,6 +14,18 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         return savedGirs ? JSON.parse(savedGirs) : Array(18).fill(false);
     });
 
+    // State to track the current active hole
+    const [currentHole, setCurrentHole] = useState(null);
+
+    // Find the first unregistered hole whenever scores change
+    useEffect(() => {
+        const firstUnregisteredIndex = scores.findIndex(score => score === 0);
+        const nextHole = firstUnregisteredIndex !== -1
+            ? courseData.holes[firstUnregisteredIndex]
+            : null;
+        setCurrentHole(nextHole);
+    }, [scores, courseData.holes]);
+
     useEffect(() => {
         if (resetPuttsAndGIR) {
             setPuttCounts(Array(18).fill(0));
@@ -112,7 +124,12 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     return (
         <div className="scorecard-container">
             <div className="scorecard-header-banner">
-                <div className="player-info">{playerName} • {courseData.name}</div>
+                <div className="player-info">
+                    {playerName} • {courseData.name}
+
+                        <strong>{currentHole && ` • Hole ${currentHole.number} (${currentHole.distance}m)`}</strong>
+
+                </div>
             </div>
 
             <div className="scorecard-scroll">
