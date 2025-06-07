@@ -40,6 +40,10 @@
     box-shadow: var(--soft-shadow);
 }
 
+.action-button.back {
+    background-color: var(--over-par);
+}
+
 .action-button:hover {
     background-color: var(--accent-color);
     transform: translateY(-2px);

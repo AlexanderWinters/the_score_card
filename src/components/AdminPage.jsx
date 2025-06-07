@@ -1,7 +1,7 @@
-// src/components/AdminPage.jsx
 import React, { useState, useEffect } from 'react';
 import { fetchAllCourses, addCourse, uploadJsonCourses, uploadCsvCourses } from '../api/courseApi';
 import '../styles/adminPage.css';
+import {Link} from "react-router-dom";
 
 function AdminPage() {
     const [courses, setCourses] = useState([]);
@@ -216,6 +216,7 @@ function AdminPage() {
                 <button className="action-button" onClick={loadCourses} disabled={loading}>
                     Refresh Courses
                 </button>
+                <Link to="/" className="action-button back">Back to App</Link>
             </div>
 
             {showForm && (
