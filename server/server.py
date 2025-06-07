@@ -244,6 +244,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
+        email = email.lower()
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
@@ -278,8 +279,9 @@ async def startup_event():
 @app.post("/api/register", response_model=Token, status_code=201)
 async def register_user(user_create: UserCreate):
     """Register a new user with an email and password"""
-    # Validate email format
-    if not validate_email(user_create.email):
+
+    email = user_create.email.lower()
+    if not validate_email(email):
         raise HTTPException(
             status_code=400,
             detail="Invalid email format"
@@ -289,7 +291,7 @@ async def register_user(user_create: UserCreate):
         # Check if email already exists
         existing_user = conn.execute(
             'SELECT * FROM users WHERE email = ?',
-            (user_create.email,)
+            (email,)
         ).fetchone()
 
         if existing_user:
@@ -304,14 +306,14 @@ async def register_user(user_create: UserCreate):
         cursor = conn.cursor()
         cursor.execute(
             'INSERT INTO users (email, password_hash) VALUES (?, ?)',
-            (user_create.email, password_hash)
+            (email, password_hash)
         )
         conn.commit()
 
         # Generate access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user_create.email}, expires_delta=access_token_expires
+            data={"sub": email}, expires_delta=access_token_expires
         )
 
         return {"access_token": access_token, "token_type": "bearer"}
@@ -324,8 +326,9 @@ async def register_user(user_create: UserCreate):
 @app.post("/api/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login endpoint to get an access token using email and password"""
-    # Validate email format
-    if not validate_email(form_data.username):
+
+    email = form_data.username.lower()
+    if not validate_email(email):
         raise HTTPException(
             status_code=400,
             detail="Invalid email format"
@@ -334,7 +337,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     with get_db_connection() as conn:
         user = conn.execute(
             'SELECT * FROM users WHERE email = ?',
-            (form_data.username,)  # OAuth2 uses username field for the email
+            (email,)  # OAuth2 uses username field for the email
         ).fetchone()
 
         if not user or not verify_password(form_data.password, user["password_hash"]):
@@ -346,7 +349,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": form_data.username}, expires_delta=access_token_expires
+            data={"sub": email}, expires_delta=access_token_expires
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
