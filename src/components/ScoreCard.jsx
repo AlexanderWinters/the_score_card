@@ -75,13 +75,21 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         newPuttCounts[index] = value;
         setPuttCounts(newPuttCounts);
 
-        // Auto-select GIR when par is achieved with 2 putts
-        const par = courseData.holes[index].par;
-        if (scores[index] === par && value === 2) {
-            updateGirCount(index, true);
+        const score = scores[index];
+        if (score > 0 && value > 0) {
+            const par = courseData.holes[index].par;
+            const shotsToGreen = score - value;
+
+            // GIR is achieved when shots to green <= par - 2
+            // For par 3: 1 shot
+            // For par 4: 2 shots
+            // For par 5: 3 shots
+            const isGir = shotsToGreen <= (par - 2);
+
+            // Update GIR status
+            updateGirCount(index, isGir);
         }
     };
-
     const updateBunkerCount = (index, value) => {
         const newBunkerCounts = [...bunkerCounts];
         newBunkerCounts[index] = value;
