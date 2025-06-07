@@ -288,21 +288,18 @@ function AdminPage() {
                                             />
                                         </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor={`teeColor${index}`}>Tee Color *</label>
-                                            <input
-                                                id={`teeColor${index}`}
-                                                type="text"
-                                                value={teeBox.color}
-                                                onChange={(e) => handleTeeBoxChange(index, 'color', e.target.value)}
-                                                required
-                                                placeholder="Black, Blue, Red, etc."
-                                            />
-                                        </div>
+                                        {/* <div className="form-group">*/}
+                                        {/*    <label htmlFor={`teeColor${index}`}>Tee Color *</label>*/}
+                                        {/*    <input*/}
+                                        {/*        id={`teeColor${index}`}*/}
+                                        {/*        type="text"*/}
+                                        {/*        value={teeBox.color}*/}
+                                        {/*        onChange={(e) => handleTeeBoxChange(index, 'color', e.target.value)}*/}
+                                        {/*        required*/}
+                                        {/*        placeholder="Black, Blue, Red, etc."*/}
+                                        {/*    />*/}
+                                        {/*</div>*/}
                                     </div>
-
-                                    // Modify the holes section in the AdminPage.jsx file
-                                    // Replace the existing holes-section with this implementation
 
                                     <div className="holes-section">
                                         <div className="holes-header">
@@ -486,7 +483,6 @@ function AdminPage() {
   "teeBoxes": [
     {
       "name": "Championship",
-      "color": "Black",
       "holes": [
         { "number": 1, "distance": 350, "par": 4, "hcp_index": 5 },
         ...
@@ -521,7 +517,7 @@ function AdminPage() {
                         <div className="file-format-info">
                             <h4>CSV Format:</h4>
                             <p>CSV file should have the following headers:</p>
-                            <code>course_name,location,description,tee_name,tee_color,hole_number,distance,par,hcp_index</code>
+                            <code>course_name,location,description,tee_name,hole_number,distance,par,hcp_index</code>
                             <p>Each row represents a hole on a specific tee box.</p>
                         </div>
                     </div>

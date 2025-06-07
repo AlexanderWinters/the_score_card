@@ -108,7 +108,7 @@ class TeeBox(BaseModel):
     id: Optional[int] = None
     course_id: int
     name: str
-    color: str
+    #color: str
     holes: Optional[List[Hole]] = None
 
 class Course(BaseModel):
@@ -126,7 +126,7 @@ class HoleCreate(BaseModel):
 
 class TeeBoxCreate(BaseModel):
     name: str
-    color: str
+    #color: str
     holes: List[HoleCreate]
 
 class CourseCreate(BaseModel):
@@ -157,7 +157,6 @@ def initialize_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             course_id INTEGER NOT NULL,
             name TEXT NOT NULL,
-            color TEXT NOT NULL,
             FOREIGN KEY (course_id) REFERENCES courses (id)
         )
         ''')
@@ -399,7 +398,7 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
         rounds_data = conn.execute(
             '''SELECT r.id, r.course_id, r.tee_box_id, r.date, r.scores,
                       r.putts, r.gir, r.fairways, r.bunkers,
-                      c.name as course_name, t.name as tee_name, t.color as tee_color
+                      c.name as course_name, t.name as tee_name
                FROM rounds r
                         JOIN courses c ON r.course_id = c.id
                         JOIN tee_boxes t ON r.tee_box_id = t.id
@@ -424,7 +423,7 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
                 "course_name": round_data["course_name"],
                 "tee_box_id": round_data["tee_box_id"],
                 "tee_name": round_data["tee_name"],
-                "tee_color": round_data["tee_color"],
+                #"tee_color": round_data["tee_color"],
                 "date": round_data["date"],
                 "scores": scores,
                 "putts": putts,
@@ -471,8 +470,8 @@ async def add_course(course: CourseCreate):
         # Insert tee boxes and holes
         for tee_box in course.teeBoxes:
             cursor.execute(
-                'INSERT INTO tee_boxes (course_id, name, color) VALUES (?, ?, ?)',
-                (course_id, tee_box.name, tee_box.color)
+                'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
+                (course_id, tee_box.name)
             )
             tee_box_id = cursor.lastrowid
 
@@ -548,13 +547,13 @@ async def seed_database():
             course_id = course_row['id']
 
             tee_boxes = [
-                (course_id, 'Championship', 'Black'),
-                (course_id, 'Club', 'Blue'),
-                (course_id, 'Forward', 'Red')
+                (course_id, 'Championship'),
+                (course_id, 'Club'),
+                (course_id, 'Forward')
             ]
 
             cursor.executemany(
-                'INSERT INTO tee_boxes (course_id, name, color) VALUES (?, ?, ?)',
+                'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
                 tee_boxes
             )
 
@@ -622,12 +621,12 @@ async def upload_json_courses(file: UploadFile = File(...)):
 
                 # Process tee boxes
                 for tee_box in course_data.get('teeBoxes', []):
-                    if not all(key in tee_box for key in ['name', 'color', 'holes']):
+                    if not all(key in tee_box for key in ['name', 'holes']):
                         continue  # Skip invalid tee boxes
 
                     cursor.execute(
-                        'INSERT INTO tee_boxes (course_id, name, color) VALUES (?, ?, ?)',
-                        (course_id, tee_box.get('name'), tee_box.get('color'))
+                        'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
+                        (course_id, tee_box.get('name'))
                     )
                     tee_box_id = cursor.lastrowid
 
@@ -685,15 +684,14 @@ async def upload_csv_courses(file: UploadFile = File(...)):
 
             # Extract tee box data
             tee_name = row.get('tee_name', '').strip()
-            tee_color = row.get('tee_color', '').strip()
-            if not tee_name or not tee_color:
+            #tee_color = row.get('tee_color', '').strip()
+            if not tee_name: # or not tee_color:
                 continue
 
-            tee_key = f"{tee_name}_{tee_color}"
+            tee_key = f"{tee_name}"
             if tee_key not in courses_data[course_name]['teeBoxes']:
                 courses_data[course_name]['teeBoxes'][tee_key] = {
                     'name': tee_name,
-                    'color': tee_color,
                     'holes': []
                 }
 
@@ -751,7 +749,7 @@ async def upload_csv_courses(file: UploadFile = File(...)):
                         continue
 
                     cursor.execute(
-                        'INSERT INTO tee_boxes (course_id, name, color) VALUES (?, ?, ?)',
+                        'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
                         (course_id, tee_box['name'], tee_box['color'])
                     )
                     tee_box_id = cursor.lastrowid

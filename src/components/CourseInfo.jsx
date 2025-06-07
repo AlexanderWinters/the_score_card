@@ -62,7 +62,7 @@ function CourseInfo({
                     >
                         {selectedCourse.teeBoxes.map(tee => (
                             <option key={tee.id} value={tee.id}>
-                                {tee.name} ({tee.color})
+                                {tee.name}
                             </option>
                         ))}
                     </select>
