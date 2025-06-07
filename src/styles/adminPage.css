@@ -447,6 +447,10 @@
     text-align: center;
 }
 
+.hole-details-table.admin {
+    color: black;
+}
+
 .hole-details-table th,
 .hole-details-table td {
     padding: 8px;
@@ -601,14 +605,12 @@
     max-height: calc(90vh - 70px); /* Subtract header height */
 }
 
-/* Make sure the form in the modal looks good */
 .modal-body .course-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Existing styles for courses header */
 .courses-header {
     display: flex;
     justify-content: space-between;

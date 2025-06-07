@@ -351,7 +351,7 @@ function AdminPage() {
 
                                                 {teeBox.holes.length > 0 ? (
                                                     <div className="holes-table">
-                                                        <table className="hole-details-table">
+                                                        <table className="hole-details-table admin">
                                                             <thead>
                                                             <tr>
                                                                 <th>Hole</th>
