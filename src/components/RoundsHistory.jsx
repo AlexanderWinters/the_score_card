@@ -38,7 +38,6 @@ function RoundsHistory() {
         });
     };
 
-    // Enhanced statistics calculation
     const calculateStats = () => {
         if (rounds.length === 0) return null;
 
@@ -50,7 +49,6 @@ function RoundsHistory() {
         let bestRound = { score: Infinity, date: '', course: '' };
         let roundsPlayed = rounds.length;
 
-        // Count holes played for percentage calculations
         let holesPlayed = 0;
         let parThreeCount = 0;
         let parFourCount = 0;
@@ -60,7 +58,6 @@ function RoundsHistory() {
             const score = round.total_score;
             totalScore += score;
 
-            // Track best round
             if (score < bestRound.score) {
                 bestRound = {
                     score: score,
@@ -69,7 +66,6 @@ function RoundsHistory() {
                 };
             }
 
-            // Track statistics
             if (round.putts) {
                 const roundPutts = round.putts.filter(putts => putts > 0).reduce((sum, putts) => sum + putts, 0);
                 totalPutts += roundPutts;
@@ -87,7 +83,6 @@ function RoundsHistory() {
                 totalBunkers += round.bunkers.reduce((sum, bunker) => sum + bunker, 0);
             }
 
-            // Count played holes for each round
             const completedHoles = round.scores.filter(s => s > 0).length;
             holesPlayed += completedHoles;
         });
@@ -116,13 +111,11 @@ function RoundsHistory() {
         };
     };
 
-    // Round details view handler
     const handleViewRoundDetails = (round) => {
         setSelectedRound(round);
         setView('details');
     };
 
-    // Get round statistics
     const getRoundStats = (round) => {
         if (!round) return null;
 
@@ -160,7 +153,6 @@ function RoundsHistory() {
         </div>
     );
 
-    // Summary View
     const SummaryView = () => (
         <>
             {stats && (
@@ -255,7 +247,6 @@ function RoundsHistory() {
         </>
     );
 
-    // Round Details View
     const RoundDetailsView = () => {
         if (!selectedRound) return null;
 

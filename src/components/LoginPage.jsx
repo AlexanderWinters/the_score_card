@@ -1,4 +1,3 @@
-// src/components/LoginPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../api/authApi';

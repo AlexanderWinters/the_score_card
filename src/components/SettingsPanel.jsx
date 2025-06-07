@@ -1,9 +1,7 @@
-// src/components/SettingsPanel.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import HandicapInput from './HandicapInput';
 import '../styles/settings.css';
-import { FaCog } from 'react-icons/fa';
 
 function SettingsPanel({
                            isLoggedIn,

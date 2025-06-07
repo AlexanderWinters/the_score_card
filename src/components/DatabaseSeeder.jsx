@@ -1,4 +1,3 @@
-// src/components/DatabaseSeeder.jsx
 import React, { useState } from 'react';
 import { seedDatabase } from '../api/courseApi';
 

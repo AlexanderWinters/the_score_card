@@ -51,7 +51,6 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # Token valid for 1 week
 
-# Database connection context manager
 @contextmanager
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -61,7 +60,6 @@ def get_db_connection():
     finally:
         conn.close()
 
-# Authentication models
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -95,7 +93,6 @@ class Round(RoundBase):
     id: int
     user_id: int
 
-# Pydantic models for validation and documentation
 class Hole(BaseModel):
     id: Optional[int] = None
     tee_box_id: int
@@ -142,7 +139,6 @@ def initialize_database():
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Create courses table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS courses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +149,6 @@ def initialize_database():
         )
         ''')
 
-        # Create tee_boxes table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS tee_boxes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,7 +158,6 @@ def initialize_database():
         )
         ''')
 
-        # Create holes table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS holes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -176,7 +170,6 @@ def initialize_database():
         )
         ''')
 
-        # Create users table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -186,7 +179,6 @@ def initialize_database():
         )
         ''')
 
-# Create rounds table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS rounds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -219,11 +211,9 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# Generate a random user key (12 characters)
 def generate_user_key():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
 
-# JWT token functions
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -234,7 +224,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# User authentication middleware
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -270,14 +259,11 @@ def validate_email(email: str) -> bool:
 
 @app.on_event("startup")
 async def startup_event():
-    # Initialize database on startup
     if not os.path.exists(DB_PATH):
         initialize_database()
     else:
-        # Make sure schema is up to date
         initialize_database()
 
-# Authentication endpoints
 @app.post("/api/register", response_model=Token, status_code=201)
 async def register_user(user_create: UserCreate):
     """Register a new user with an email and password"""
@@ -290,7 +276,6 @@ async def register_user(user_create: UserCreate):
         )
 
     with get_db_connection() as conn:
-        # Check if email already exists
         existing_user = conn.execute(
             'SELECT * FROM users WHERE email = ?',
             (email,)
@@ -302,7 +287,6 @@ async def register_user(user_create: UserCreate):
                 detail="Email already registered"
             )
 
-        # Hash the password and store the user
         password_hash = get_password_hash(user_create.password)
 
         cursor = conn.cursor()
@@ -312,7 +296,6 @@ async def register_user(user_create: UserCreate):
         )
         conn.commit()
 
-        # Generate access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": email}, expires_delta=access_token_expires
@@ -320,10 +303,6 @@ async def register_user(user_create: UserCreate):
 
         return {"access_token": access_token, "token_type": "bearer"}
 
-# @app.post("/api/generate-key")
-# async def generate_key():
-#     """Generate a random user key"""
-#     return {"user_key": generate_user_key()}
 
 @app.post("/api/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -339,7 +318,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     with get_db_connection() as conn:
         user = conn.execute(
             'SELECT * FROM users WHERE email = ?',
-            (email,)  # OAuth2 uses username field for the email
+            (email,)
         ).fetchone()
 
         if not user or not verify_password(form_data.password, user["password_hash"]):
@@ -356,12 +335,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         return {"access_token": access_token, "token_type": "bearer"}
 
 
-# User rounds management
 @app.post("/api/rounds", status_code=201)
 async def create_round(round_data: RoundCreate, current_user: dict = Depends(get_current_user)):
     """Save a completed round for the current user"""
 
-    # Only save rounds with at least 9 holes completed
     scores = round_data.scores
     completed_holes = sum(1 for score in scores if score > 0)
 
@@ -374,10 +351,7 @@ async def create_round(round_data: RoundCreate, current_user: dict = Depends(get
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Convert scores list to JSON string
         scores_json = json.dumps(round_data.scores)
-
-        # Convert stats to JSON strings if they exist
         putts_json = json.dumps(round_data.putts) if round_data.putts else None
         gir_json = json.dumps(round_data.gir) if round_data.gir else None
         fairways_json = json.dumps(round_data.fairways) if round_data.fairways else None
@@ -416,7 +390,6 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
         for round_data in rounds_data:
             scores = json.loads(round_data["scores"])
 
-            # Parse statistics if they exist
             putts = json.loads(round_data["putts"]) if round_data["putts"] else None
             gir = json.loads(round_data["gir"]) if round_data["gir"] else None
             fairways = json.loads(round_data["fairways"]) if round_data["fairways"] else None
@@ -440,7 +413,6 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
 
         return result
 
-# Existing endpoints
 @app.get("/api/courses", response_model=List[Course])
 async def get_all_courses(include_inactive: bool = False):
     with get_db_connection() as conn:
@@ -458,8 +430,8 @@ async def check_database():
         has_courses = count['count'] > 0
 
         return {
-            "initialized": True,  # Database structure exists
-            "has_courses": has_courses  # Database has course data
+            "initialized": True,
+            "has_courses": has_courses
         }
 
 @app.post("/api/courses", response_model=Course, status_code=201)
@@ -468,14 +440,12 @@ async def add_course(course: CourseCreate):
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Insert the course
         cursor.execute(
             'INSERT INTO courses (name, location, description) VALUES (?, ?, ?)',
             (course.name, course.location, course.description)
         )
         course_id = cursor.lastrowid
 
-        # Insert tee boxes and holes
         for tee_box in course.teeBoxes:
             cursor.execute(
                 'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
@@ -483,7 +453,6 @@ async def add_course(course: CourseCreate):
             )
             tee_box_id = cursor.lastrowid
 
-            # Insert holes for this tee box
             for hole in tee_box.holes:
                 cursor.execute(
                     'INSERT INTO holes (tee_box_id, number, distance, par, hcp_index) VALUES (?, ?, ?, ?, ?)',
@@ -492,7 +461,6 @@ async def add_course(course: CourseCreate):
 
         conn.commit()
 
-        # Return the newly created course with all its details
         return await get_course_by_id(course_id)
 
 
@@ -523,7 +491,6 @@ async def get_course_by_id(course_id: int):
 
         return course_dict
 
-# Add these endpoints after the existing course endpoints
 
 @app.put("/api/courses/{course_id}", response_model=Course)
 async def update_course(course_id: int, course: CourseCreate):
@@ -531,24 +498,20 @@ async def update_course(course_id: int, course: CourseCreate):
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Check if course exists
         existing = conn.execute('SELECT * FROM courses WHERE id = ?', (course_id,)).fetchone()
         if not existing:
             raise HTTPException(status_code=404, detail="Course not found")
 
-        # Update the course
         cursor.execute(
             'UPDATE courses SET name = ?, location = ?, description = ? WHERE id = ?',
             (course.name, course.location, course.description, course_id)
         )
 
-        # Delete existing tee boxes and holes for this course
         tee_boxes = conn.execute('SELECT id FROM tee_boxes WHERE course_id = ?', (course_id,)).fetchall()
         for tee_box in tee_boxes:
             cursor.execute('DELETE FROM holes WHERE tee_box_id = ?', (tee_box['id'],))
         cursor.execute('DELETE FROM tee_boxes WHERE course_id = ?', (course_id,))
 
-        # Insert new tee boxes and holes
         for tee_box in course.teeBoxes:
             cursor.execute(
                 'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
@@ -556,7 +519,6 @@ async def update_course(course_id: int, course: CourseCreate):
             )
             tee_box_id = cursor.lastrowid
 
-            # Insert holes for this tee box
             for hole in tee_box.holes:
                 cursor.execute(
                     'INSERT INTO holes (tee_box_id, number, distance, par, hcp_index) VALUES (?, ?, ?, ?, ?)',
@@ -565,7 +527,6 @@ async def update_course(course_id: int, course: CourseCreate):
 
         conn.commit()
 
-        # Return the updated course
         return await get_course_by_id(course_id)
 
 @app.patch("/api/courses/{course_id}/toggle-active", status_code=200)
@@ -574,12 +535,10 @@ async def toggle_course_active(course_id: int):
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Check if course exists
         existing = conn.execute('SELECT * FROM courses WHERE id = ?', (course_id,)).fetchone()
         if not existing:
             raise HTTPException(status_code=404, detail="Course not found")
 
-        # Toggle the active status
         current_status = existing['active'] if 'active' in existing.keys() else 1
         new_status = 0 if current_status else 1
 
@@ -596,12 +555,10 @@ async def seed_database():
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Clear existing data
         cursor.execute('DELETE FROM holes')
         cursor.execute('DELETE FROM tee_boxes')
         cursor.execute('DELETE FROM courses')
 
-        # Insert courses
         courses = [
             ('Bro Hof Slott GC', 'Stockholm, Sweden', 'Championship level course'),
             ('Ullna Golf Club', 'Stockholm, Sweden', 'Beautiful lakeside course'),
@@ -615,10 +572,8 @@ async def seed_database():
             courses
         )
 
-        # Get the actual course IDs that were inserted
         inserted_courses = cursor.execute('SELECT id FROM courses ORDER BY id').fetchall()
 
-        # Insert tee boxes and holes for each actual course ID
         for course_row in inserted_courses:
             course_id = course_row['id']
 
@@ -633,7 +588,6 @@ async def seed_database():
                 tee_boxes
             )
 
-            # Get the tee box IDs we just inserted
             tee_box_rows = cursor.execute(
                 'SELECT id FROM tee_boxes WHERE course_id = ?',
                 (course_id,)
@@ -642,7 +596,6 @@ async def seed_database():
             for tee_idx, tee_box_row in enumerate(tee_box_rows):
                 tee_box_id = tee_box_row['id']
 
-                # Different distance patterns for different tee boxes
                 base_distance = 165 - (tee_idx * 15)
                 distance_increment = 15 - (tee_idx * 2)
 
@@ -667,11 +620,9 @@ async def seed_database():
 async def upload_json_courses(file: UploadFile = File(...)):
     """Upload and process a JSON file containing course data"""
     try:
-        # Read and parse the JSON file
         contents = await file.read()
         data = json.loads(contents.decode('utf-8'))
 
-        # Handle both single course and multiple course formats
         courses_to_add = data if isinstance(data, list) else [data]
 
         added_course_ids = []
@@ -680,14 +631,12 @@ async def upload_json_courses(file: UploadFile = File(...)):
             cursor = conn.cursor()
 
             for course_data in courses_to_add:
-                # Validate the course data structure (simplified)
                 if not all(key in course_data for key in ['name', 'teeBoxes']):
                     raise HTTPException(
                         status_code=400,
                         detail="Invalid course data format. Each course must have 'name' and 'teeBoxes'"
                     )
 
-                # Insert the course
                 cursor.execute(
                     'INSERT INTO courses (name, location, description) VALUES (?, ?, ?)',
                     (course_data.get('name'), course_data.get('location'), course_data.get('description'))
@@ -695,10 +644,9 @@ async def upload_json_courses(file: UploadFile = File(...)):
                 course_id = cursor.lastrowid
                 added_course_ids.append(course_id)
 
-                # Process tee boxes
                 for tee_box in course_data.get('teeBoxes', []):
                     if not all(key in tee_box for key in ['name', 'holes']):
-                        continue  # Skip invalid tee boxes
+                        continue
 
                     cursor.execute(
                         'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
@@ -706,10 +654,9 @@ async def upload_json_courses(file: UploadFile = File(...)):
                     )
                     tee_box_id = cursor.lastrowid
 
-                    # Process holes
                     for hole in tee_box.get('holes', []):
                         if not all(key in hole for key in ['number', 'distance', 'par', 'hcp_index']):
-                            continue  # Skip invalid holes
+                            continue
 
                         cursor.execute(
                             'INSERT INTO holes (tee_box_id, number, distance, par, hcp_index) VALUES (?, ?, ?, ?, ?)',
@@ -734,7 +681,6 @@ async def upload_csv_courses(file: UploadFile = File(...)):
     course_name,location,description,tee_name,tee_color,hole_number,distance,par,hcp_index
     """
     try:
-        # Read and parse the CSV file
         contents = await file.read()
         csv_data = StringIO(contents.decode('utf-8'))
         csv_reader = csv.DictReader(csv_data)
@@ -744,12 +690,10 @@ async def upload_csv_courses(file: UploadFile = File(...)):
         courses_data = {}
 
         for row in csv_reader:
-            # Extract course data
             course_name = row.get('course_name', '').strip()
             if not course_name:
                 continue
 
-            # If this is a new course, create its entry
             if course_name not in courses_data:
                 courses_data[course_name] = {
                     'name': course_name,
@@ -758,10 +702,9 @@ async def upload_csv_courses(file: UploadFile = File(...)):
                     'teeBoxes': {}
                 }
 
-            # Extract tee box data
             tee_name = row.get('tee_name', '').strip()
-            #tee_color = row.get('tee_color', '').strip()
-            if not tee_name: # or not tee_color:
+
+            if not tee_name:
                 continue
 
             tee_key = f"{tee_name}"
@@ -771,7 +714,6 @@ async def upload_csv_courses(file: UploadFile = File(...)):
                     'holes': []
                 }
 
-            # Extract hole data
             try:
                 hole_number = int(row.get('hole_number', 0))
                 distance = int(row.get('distance', 0))
@@ -790,7 +732,6 @@ async def upload_csv_courses(file: UploadFile = File(...)):
             except (ValueError, TypeError):
                 continue
 
-        # Prepare the processed data for database insertion
         processed_courses = []
         for course_name, course_data in courses_data.items():
             processed_course = {
@@ -801,17 +742,14 @@ async def upload_csv_courses(file: UploadFile = File(...)):
             }
             processed_courses.append(processed_course)
 
-        # Insert the processed courses
         added_course_ids = []
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
             for course in processed_courses:
-                # Skip courses without valid tee boxes or holes
                 if not course['teeBoxes'] or not any(tee.get('holes') for tee in course['teeBoxes']):
                     continue
 
-                # Insert the course
                 cursor.execute(
                     'INSERT INTO courses (name, location, description) VALUES (?, ?, ?)',
                     (course['name'], course['location'], course['description'])
@@ -819,7 +757,6 @@ async def upload_csv_courses(file: UploadFile = File(...)):
                 course_id = cursor.lastrowid
                 added_course_ids.append(course_id)
 
-                # Insert tee boxes and holes
                 for tee_box in course['teeBoxes']:
                     if not tee_box.get('holes'):
                         continue
@@ -844,7 +781,6 @@ async def upload_csv_courses(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error processing CSV file: {str(e)}")
 
 
-# For development
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=3000)

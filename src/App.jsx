@@ -15,7 +15,6 @@ import {checkDatabase, fetchAllCourses, fetchCourseById, seedDatabase} from './a
 import { saveRound } from './api/authApi'
 import SettingsPanel from "./components/SettingsPanel.jsx";
 
-// Protected route component
 const ProtectedRoute = ({ children }) => {
     const { isLoggedIn } = useAuth();
 
@@ -33,15 +32,13 @@ function MainApp() {
     const [resetTrigger, setResetTrigger] = useState(0);
     const { isLoggedIn, logout } = useAuth();
 
-    // Initialize state from localStorage if available, otherwise use defaults
     const [handicap, setHandicap] = useState(() => {
         const savedHandicap = localStorage.getItem('handicap');
         return savedHandicap ? Number(savedHandicap) : 0;
     });
     const handleLogout = () => {
-        resetSession(); // Clear current session data
-        logout(); // Call your existing logout function
-        // Navigation will happen automatically due to the ProtectedRoute
+        resetSession();
+        logout();
     };
 
     const [playerName, setPlayerName] = useState(() => {
@@ -76,7 +73,6 @@ function MainApp() {
         }
     });
 
-    // Save state to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('handicap', handicap.toString());
     }, [handicap]);
@@ -105,18 +101,15 @@ function MainApp() {
         const initDb = async () => {
             console.log("Checking database status");
             try {
-                // First check if the database already has courses
                 const dbStatus = await checkDatabase();
 
                 if (dbStatus.has_courses) {
                     console.log("Database already has courses, skipping seed");
                     setDatabaseInitialized(true);
 
-                    // Load available courses immediately
                     const courses = await fetchAllCourses();
                     setAvailableCourses(courses);
 
-                    // Reset selected course if it doesn't exist
                     if (selectedCourseId) {
                         const courseExists = courses.some(course => course.id === Number(selectedCourseId));
                         if (!courseExists) {
@@ -133,11 +126,9 @@ function MainApp() {
                     console.log("Database seeded successfully");
                     setDatabaseInitialized(true);
 
-                    // Load available courses after seeding
                     const courses = await fetchAllCourses();
                     setAvailableCourses(courses);
 
-                    // Set first course as selected
                     if (courses.length > 0) {
                         setSelectedCourseId(courses[0].id);
                     }
@@ -151,7 +142,6 @@ function MainApp() {
         initDb();
     }, []);
 
-    // Fetch all courses when database is initialized
     useEffect(() => {
         if (!databaseInitialized) return;
 
@@ -161,7 +151,6 @@ function MainApp() {
                 const courses = await fetchAllCourses();
                 setAvailableCourses(courses);
 
-                // Only set default course if no course is selected yet
                 if (courses.length > 0 && !selectedCourseId) {
                     setSelectedCourseId(courses[0].id);
                 }
@@ -178,8 +167,6 @@ function MainApp() {
         loadCourses();
     }, [databaseInitialized, selectedCourseId]);
 
-    // Fetch selected course details when selectedCourseId changes
-// In the useEffect that fetches course details
     useEffect(() => {
         const loadCourseDetails = async () => {
             if (!selectedCourseId) return;
@@ -188,12 +175,9 @@ function MainApp() {
                 setLoading(true);
                 const courseDetails = await fetchCourseById(selectedCourseId);
 
-                // Set selected course
                 setSelectedCourse(courseDetails);
 
-                // Update tee box selection
                 if (courseDetails.teeBoxes && courseDetails.teeBoxes.length > 0) {
-                    // Find tee box by ID or default to first one
                     const teeBox = courseDetails.teeBoxes.find(tee => tee.id === selectedTeeBoxId)
                         || courseDetails.teeBoxes[0];
 
@@ -205,16 +189,12 @@ function MainApp() {
             } catch (err) {
                 console.error('Error fetching course ' + selectedCourseId + ':', err);
 
-                // If course not found, reset to a valid course ID
                 if (err.message?.includes('not found') || err.status === 404) {
                     console.log('Course not found, resetting to available courses');
                     localStorage.removeItem('selectedCourseId');
-
-                    // Set to first available course if we have any
                     if (availableCourses.length > 0) {
                         setSelectedCourseId(availableCourses[0].id);
                     } else {
-                        // If no courses available, clear selection
                         setSelectedCourseId(null);
                     }
                 } else {
@@ -228,7 +208,6 @@ function MainApp() {
         loadCourseDetails();
     }, [selectedCourseId, availableCourses]);
 
-    // Update selected tee box when teeBoxId changes
     useEffect(() => {
         if (selectedCourse && selectedCourse.teeBoxes) {
             const teeBox = selectedCourse.teeBoxes.find(tee => tee.id === selectedTeeBoxId);
@@ -247,15 +226,11 @@ function MainApp() {
         localStorage.setItem('theme', darkMode ? 'dark' : 'light');
     }, [darkMode]);
 
-    // Modified: Only reset scores when changing courses if we don't have saved scores for this course
     useEffect(() => {
-        // Check if we're loading a saved session, if not, reset scores
         const savedCourseId = localStorage.getItem('lastCourseId');
         if (selectedCourseId !== savedCourseId) {
             setScores(Array(18).fill(0));
             localStorage.setItem('lastCourseId', selectedCourseId);
-
-            // Reset putt and gir counts
             localStorage.removeItem('puttCounts');
             localStorage.removeItem('girCounts');
         }
@@ -267,15 +242,12 @@ function MainApp() {
         setScores(newScores);
     };
 
-    // Add reset session function
     const resetSession = () => {
-        // Reset state to defaults
         setHandicap(0);
         setPlayerName('Player 1');
         setScores(Array(18).fill(0));
         setResetTrigger(prev => prev + 1);
 
-        // Clear localStorage of session data
         localStorage.removeItem('handicap');
         localStorage.removeItem('playerName');
         localStorage.removeItem('scores');
@@ -284,15 +256,12 @@ function MainApp() {
         localStorage.removeItem('girCounts');
     };
 
-    // Save the current round to the server
     const handleSaveRound = async () => {
-        // Check if the user is logged in
         if (!isLoggedIn) {
             setSaveError('You must be logged in to save a round');
             return;
         }
 
-        // Check if there are enough completed holes (at least 9)
         const completedHoles = scores.filter(score => score > 0).length;
         if (completedHoles < 9) {
             setSaveError('You must complete at least 9 holes to save a round');
@@ -305,7 +274,6 @@ function MainApp() {
         try {
             const today = new Date().toISOString().split('T')[0];
 
-            // Get statistics from localStorage
             const puttCounts = JSON.parse(localStorage.getItem('puttCounts') || '[]');
             const girCounts = JSON.parse(localStorage.getItem('girCounts') || '[]');
             const fairwayHits = JSON.parse(localStorage.getItem('fairwayHits') || '[]');
@@ -322,10 +290,8 @@ function MainApp() {
                 bunkers: bunkerCounts
             });
 
-            // Reset the form after successful save
             resetSession();
 
-            // Show success message
             alert('Round saved successfully!');
         } catch (error) {
             console.error('Error saving round:', error);
@@ -343,16 +309,10 @@ function MainApp() {
         return <div className="error">{error}</div>;
     }
 
-    // Instead of showing a "Select a course" message, automatically select the first course
     if (!selectedCourse || !selectedTeeBox) {
-        // Check if courses are available but none is selected
         if (availableCourses.length > 0) {
-            // If we have courses but no selection, select the first one
-            // This should trigger the useEffect that loads course details
-            // We can return a loading indicator during this process
             return <div className="loading">Loading course details...</div>;
         } else {
-            // If no courses are available at all
             return <div className="loading">No courses available</div>;
         }
     }

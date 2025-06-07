@@ -3,7 +3,6 @@ import '../styles/scorecard.css';
 
 function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, resetPuttsAndGIR
                    }) {
-    // Initialize from localStorage or use defaults
     const [puttCounts, setPuttCounts] = useState(() => {
         const savedPutts = localStorage.getItem('puttCounts');
         return savedPutts ? JSON.parse(savedPutts) : Array(18).fill(0);
@@ -14,22 +13,18 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         return savedGirs ? JSON.parse(savedGirs) : Array(18).fill(false);
     });
 
-    // Add state for fairway hits
     const [fairwayHits, setFairwayHits] = useState(() => {
         const savedFairways = localStorage.getItem('fairwayHits');
         return savedFairways ? JSON.parse(savedFairways) : Array(18).fill(false);
     });
 
-    // Add state for bunker hits
     const [bunkerCounts, setBunkerCounts] = useState(() => {
         const savedBunkers = localStorage.getItem('bunkerCounts');
         return savedBunkers ? JSON.parse(savedBunkers) : Array(18).fill(0);
     });
 
-    // State to track the current active hole
     const [currentHole, setCurrentHole] = useState(null);
 
-    // Find the first unregistered hole whenever scores change
     useEffect(() => {
         const firstUnregisteredIndex = scores.findIndex(score => score === 0);
         const nextHole = firstUnregisteredIndex !== -1
@@ -47,8 +42,6 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         }
     }, [resetPuttsAndGIR]);
 
-
-    // Save data to localStorage whenever they change
     useEffect(() => {
         localStorage.setItem('puttCounts', JSON.stringify(puttCounts));
     }, [puttCounts]);
@@ -65,11 +58,6 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         localStorage.setItem('bunkerCounts', JSON.stringify(bunkerCounts));
     }, [bunkerCounts]);
 
-    // const calculateHcpStrokes = (hcpIndex, playerHandicap) => {
-    //     // Distribute handicap strokes according to hole difficulty
-    //     return hcpIndex <= playerHandicap ? 1 : 0;
-    // };
-
     const updatePuttCount = (index, value) => {
         const newPuttCounts = [...puttCounts];
         newPuttCounts[index] = value;
@@ -79,11 +67,6 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         if (score > 0 && value > 0) {
             const par = courseData.holes[index].par;
             const shotsToGreen = score - value;
-
-            // GIR is achieved when shots to green <= par - 2
-            // For par 3: 1 shot
-            // For par 4: 2 shots
-            // For par 5: 3 shots
             const isGir = shotsToGreen <= (par - 2);
 
             // Update GIR status
@@ -108,11 +91,9 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         setFairwayHits(newFairwayHits);
     };
 
-    // Modified to check for par + 2 putts when score is updated
     const handleScoreUpdate = (index, value) => {
         updateScore(index, value);
 
-        // Check if this is par with 2 putts
         const par = courseData.holes[index].par;
         if (value === par && puttCounts[index] === 2) {
             updateGirCount(index, true);
@@ -124,9 +105,8 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     const totalFairways = fairwayHits.filter(hit => hit).length;
     const totalBunkers = bunkerCounts.reduce((sum, count) => sum + count, 0);
 
-    // Enhanced function to determine the score type compared to par
     const getScoreType = (score, par) => {
-        if (!score) return null; // No score entered
+        if (!score) return null;
 
         const scoreDiff = score - par;
 
@@ -139,7 +119,6 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         return null;
     };
 
-    // Get the appropriate CSS class based on score type
     const getScoreClass = (scoreType) => {
         switch (scoreType) {
             case "bogey":
@@ -155,7 +134,6 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         }
     };
 
-    // Get the text color class based on score type
     const getTextColorClass = (scoreType) => {
         if (scoreType === "bogey" || scoreType === "double-bogey") {
             return "over-par";

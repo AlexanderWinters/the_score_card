@@ -1,7 +1,3 @@
-// src/api/courseApi.jsx
-// Remove the hardcoded base URL
-// const API_BASE_URL = 'http://0.0.0.0:3000/api';
-
 export const fetchAllCourses = async (include_inactive = false) => {
     try {
         const url = include_inactive ? '/api/courses?include_inactive=true' : '/api/courses';
@@ -58,8 +54,6 @@ export const toggleCourseActive = async (courseId) => {
         throw error;
     }
 };
-
-// In api/courseApi.jsx
 export const fetchCourseById = async (courseId) => {
     try {
         const response = await fetch(`/api/courses/${courseId}`);
@@ -96,8 +90,6 @@ export const seedDatabase = async () => {
         throw error;
     }
 };
-
-// Add these functions to courseApi.jsx
 
 export const addCourse = async (courseData) => {
     try {

@@ -1,4 +1,3 @@
-// src/components/SignupPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api/authApi';
@@ -17,13 +16,11 @@ function SignupPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate passwords match
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
         }
 
-        // Basic email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Please enter a valid email address');

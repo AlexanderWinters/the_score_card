@@ -1,4 +1,3 @@
-// src/components/Navigation.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import '../styles/navigation.css';

@@ -1,6 +1,5 @@
-// src/components/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { isAuthenticated, getAuthToken, logoutUser } from '../api/authApi';
+import { isAuthenticated, logoutUser } from '../api/authApi';
 
 const AuthContext = createContext(null);
 
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Check if the token exists on app load
         setIsLoggedIn(isAuthenticated());
     }, []);
 

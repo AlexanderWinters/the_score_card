@@ -1,4 +1,3 @@
-// src/components/CourseInfo.jsx
 import React from 'react';
 
 function CourseInfo({

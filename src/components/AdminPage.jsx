@@ -10,7 +10,6 @@ function AdminPage() {
     const [error, setError] = useState(null);
     const [showInactive, setShowInactive] = useState(true);
 
-    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCourse, setEditingCourse] = useState(null);
     const [courseName, setCourseName] = useState('');
@@ -18,11 +17,9 @@ function AdminPage() {
     const [courseDescription, setCourseDescription] = useState('');
     const [teeBoxes, setTeeBoxes] = useState([{ name: '', holes: [] }]);
 
-    // File upload state
     const [jsonFile, setJsonFile] = useState(null);
     const [csvFile, setCsvFile] = useState(null);
 
-    // Load courses on component mount
     useEffect(() => {
         loadCourses();
     }, [showInactive]);
@@ -41,27 +38,22 @@ function AdminPage() {
     };
 
     const handleEditCourse = async (course) => {
-        // Start loading state
         setLoading(true);
         setError(null);
 
         try {
-            // Use the existing fetchCourseById function from your API
             const fullCourseData = await fetchCourseById(course.id);
-
-            // Set the form to editing mode with the complete course data
             setEditingCourse(fullCourseData.id);
             setCourseName(fullCourseData.name);
             setCourseLocation(fullCourseData.location || '');
             setCourseDescription(fullCourseData.description || '');
 
-            // Set tee boxes with all holes
             if (fullCourseData.teeBoxes && fullCourseData.teeBoxes.length > 0) {
                 const formattedTeeBoxes = fullCourseData.teeBoxes.map(tee => ({
                     name: tee.name,
                     holes: tee.holes.map(hole => ({
                         ...hole,
-                        parManuallySet: true // Assume all existing pars were manually set
+                        parManuallySet: true
                     }))
                 }));
                 setTeeBoxes(formattedTeeBoxes);
@@ -69,7 +61,6 @@ function AdminPage() {
                 setTeeBoxes([{ name: '', holes: [] }]);
             }
 
-            // Open the modal
             setIsModalOpen(true);
         } catch (err) {
             setError(err.message || 'Failed to load course details');
@@ -80,9 +71,7 @@ function AdminPage() {
     };
 
     const handleAddNewCourse = () => {
-        // Reset form for adding a new course
         resetForm();
-        // Open the modal
         setIsModalOpen(true);
     };
 
@@ -100,26 +89,22 @@ function AdminPage() {
         }
     };
 
-    // Handle tee box changes
     const handleTeeBoxChange = (index, field, value) => {
         const updatedTeeBoxes = [...teeBoxes];
         updatedTeeBoxes[index][field] = value;
         setTeeBoxes(updatedTeeBoxes);
     };
 
-    // Add a new tee box
     const addTeeBox = () => {
         setTeeBoxes([...teeBoxes, { name: '', holes: [] }]);
     };
 
-    // Remove a tee box
     const removeTeeBox = (index) => {
         const updatedTeeBoxes = [...teeBoxes];
         updatedTeeBoxes.splice(index, 1);
         setTeeBoxes(updatedTeeBoxes);
     };
 
-    // Reset the form
     const resetForm = () => {
         setEditingCourse(null);
         setCourseName('');
@@ -128,13 +113,11 @@ function AdminPage() {
         setTeeBoxes([{ name: '', holes: [] }]);
     };
 
-    // Close the modal
     const closeModal = () => {
         setIsModalOpen(false);
         resetForm();
     };
 
-    // Submit the form
     const handleSubmitForm = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -142,7 +125,6 @@ function AdminPage() {
         setMessage(null);
 
         try {
-            // Validate form
             if (!courseName.trim()) {
                 throw new Error('Course name is required');
             }
@@ -151,15 +133,11 @@ function AdminPage() {
                 throw new Error('At least one tee box is required');
             }
 
-            // Validate tee boxes
             const validTeeBoxes = teeBoxes.filter(tee => {
-                // Check name
                 if (!tee.name.trim()) return false;
 
-                // Check if has 18 holes
                 if (tee.holes.length !== 18) return false;
 
-                // Check that all holes have valid data
                 return tee.holes.every(hole =>
                     hole.number > 0 &&
                     hole.distance > 0 &&
@@ -181,11 +159,9 @@ function AdminPage() {
                     distance: hole.distance,
                     par: hole.par,
                     hcp_index: hole.hcp_index
-                    // parManuallySet is intentionally omitted
                 }))
             }));
 
-            // Prepare course data
             const courseData = {
                 name: courseName,
                 location: courseLocation,
@@ -195,19 +171,14 @@ function AdminPage() {
 
             let result;
             if (editingCourse) {
-                // Update existing course
                 result = await updateCourse(editingCourse, courseData);
                 setMessage(`Course "${result.name}" updated successfully!`);
             } else {
-                // Add new course
                 result = await addCourse(courseData);
                 setMessage(`Course "${result.name}" added successfully!`);
             }
 
-            // Close the modal
             closeModal();
-
-            // Reload courses
             loadCourses();
 
         } catch (err) {
@@ -218,7 +189,6 @@ function AdminPage() {
         }
     };
 
-    // Handle JSON file upload
     const handleJsonUpload = async (e) => {
         e.preventDefault();
         if (!jsonFile) {
@@ -235,7 +205,6 @@ function AdminPage() {
             setMessage(`Successfully uploaded ${result.course_ids.length} courses from JSON!`);
             setJsonFile(null);
 
-            // Reload courses
             loadCourses();
         } catch (err) {
             setError(err.message || 'Failed to upload JSON file');
@@ -245,7 +214,6 @@ function AdminPage() {
         }
     };
 
-    // Handle CSV file upload
     const handleCsvUpload = async (e) => {
         e.preventDefault();
         if (!csvFile) {
@@ -262,7 +230,6 @@ function AdminPage() {
             setMessage(`Successfully uploaded ${result.course_ids.length} courses from CSV!`);
             setCsvFile(null);
 
-            // Reload courses
             loadCourses();
         } catch (err) {
             setError(err.message || 'Failed to upload CSV file');
@@ -272,7 +239,6 @@ function AdminPage() {
         }
     };
     const handleOutsideClick = (e) => {
-        // If the click is on the overlay (not on the modal content), close the modal
         if (e.target.classList.contains('modal-overlay')) {
             closeModal();
         }
@@ -302,7 +268,6 @@ function AdminPage() {
                 <Link to="/" className="action-button back">Back to App</Link>
             </div>
 
-            {/* Course Modal */}
             {isModalOpen && (
                 <div className="modal-overlay" onClick={handleOutsideClick}>
                     <div className="modal-container">
@@ -409,14 +374,12 @@ function AdminPage() {
                                                                                 const updatedTeeBoxes = [...teeBoxes];
                                                                                 updatedTeeBoxes[index].holes[holeIndex].distance = distance;
 
-                                                                                // Auto-set par based on distance
                                                                                 if (distance > 0) {
                                                                                     let suggestedPar;
                                                                                     if (distance <= 200) suggestedPar = 3;
                                                                                     else if (distance <= 380) suggestedPar = 4;
                                                                                     else suggestedPar = 5;
 
-                                                                                    // Only update par if it wasn't explicitly set before
                                                                                     if (!updatedTeeBoxes[index].holes[holeIndex].parManuallySet) {
                                                                                         updatedTeeBoxes[index].holes[holeIndex].par = suggestedPar;
                                                                                     }
@@ -433,7 +396,6 @@ function AdminPage() {
                                                                             onChange={(e) => {
                                                                                 const updatedTeeBoxes = [...teeBoxes];
                                                                                 updatedTeeBoxes[index].holes[holeIndex].par = Number(e.target.value);
-                                                                                // Mark that par was manually set
                                                                                 updatedTeeBoxes[index].holes[holeIndex].parManuallySet = true;
                                                                                 setTeeBoxes(updatedTeeBoxes);
                                                                             }}
@@ -481,7 +443,7 @@ function AdminPage() {
                                                                         distance: 0,
                                                                         par: 4,
                                                                         hcp_index: i,
-                                                                        parManuallySet: false // Add flag to track manual par changes
+                                                                        parManuallySet: false
                                                                     });
                                                                 }
 
