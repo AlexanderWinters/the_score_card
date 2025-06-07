@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react'
 import '../styles/scorecard.css';
+import { FaChevronUp, FaChevronDown } from 'react-icons/fa';
 
-function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, resetPuttsAndGIR
+function ScoreCard({ scores, updateScore, courseData, handicap, playerName, resetPuttsAndGIR
                    }) {
     const [puttCounts, setPuttCounts] = useState(() => {
         const savedPutts = localStorage.getItem('puttCounts');
@@ -24,6 +25,10 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     });
 
     const [currentHole, setCurrentHole] = useState(null);
+    const [showDetailsTable, setShowDetailsTable] = useState(() => {
+        const savedPreference = localStorage.getItem('showDetailsTable');
+        return savedPreference !== null ? JSON.parse(savedPreference) : true;
+    });
 
     useEffect(() => {
         const firstUnregisteredIndex = scores.findIndex(score => score === 0);
@@ -57,6 +62,10 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
     useEffect(() => {
         localStorage.setItem('bunkerCounts', JSON.stringify(bunkerCounts));
     }, [bunkerCounts]);
+
+    useEffect(() => {
+        localStorage.setItem('showDetailsTable', JSON.stringify(showDetailsTable));
+    }, [showDetailsTable]);
 
     const updatePuttCount = (index, value) => {
         const newPuttCounts = [...puttCounts];
@@ -100,10 +109,24 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
         }
     };
 
+    const toggleDetailsTable = () => {
+        setShowDetailsTable(!showDetailsTable);
+    };
+
     const totalPutts = puttCounts.reduce((sum, count) => sum + count, 0);
     const totalGirs = girCounts.filter(gir => gir).length;
     const totalFairways = fairwayHits.filter(hit => hit).length;
     const totalBunkers = bunkerCounts.reduce((sum, count) => sum + count, 0);
+
+    // Calculate net scores
+    const getNetScore = (score, holeIndex) => {
+        if (!score || !handicap) return '-';
+
+        const hole = courseData.holes[holeIndex];
+        // Calculate strokes received for this hole based on handicap
+        const strokesReceived = hole.hcp_index <= handicap ? 1 : 0;
+        return score - strokesReceived;
+    };
 
     const getScoreType = (score, par) => {
         if (!score) return null;
@@ -232,131 +255,184 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
                                 </div>
                             </div>
                         </div>
+
+                        {/* HCP Index row */}
+                        <div className="scorecard-row">
+                            <div className="row-label">HCP Index</div>
+                            {courseData.holes.map((hole, index) => (
+                                <div key={index} className="hole-column">
+                                    <div className="hole-hcp">{hole.hcp_index || '-'}</div>
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                <div className="hole-hcp">-</div>
+                            </div>
+                        </div>
+
+                        {/* Net Score row */}
+                        <div className="scorecard-row">
+                            <div className="row-label">Net Score</div>
+                            {courseData.holes.map((hole, index) => (
+                                <div key={index} className="hole-column">
+                                    <div className="hole-net-score">
+                                        {scores[index] ? getNetScore(scores[index], index) : '-'}
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="hole-column total-column">
+                                <div className="hole-net-score">
+                                    {handicap && scores.reduce((sum, score, index) => {
+                                        if (!score) return sum;
+                                        const netScore = getNetScore(score, index);
+                                        return netScore !== '-' ? sum + netScore : sum;
+                                    }, 0) || '-'}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Toggle button for details table */}
+            <div className="details-toggle" onClick={toggleDetailsTable}>
+                {showDetailsTable ? (
+                    <>
+                        <span>Hide Details</span>
+                        <FaChevronUp className="toggle-icon" />
+                    </>
+                ) : (
+                    <>
+                        <span>Show Details</span>
+                        <FaChevronDown className="toggle-icon" />
+                    </>
+                )}
             </div>
 
             {/* SECOND TABLE: Details Scorecard */}
-            <div className="scorecard-header-banner details-header">
-                <div className="player-info">
-                    <strong>{currentHole && `Hole ${currentHole.number} Details`}</strong>
-                </div>
-            </div>
-
-            <div className="scorecard-scroll">
-                <div className="scorecard">
-                    <div className="scorecard-table details-scorecard">
-                        {/* Hole row for details table */}
-                        <div className="scorecard-row hole-number-row">
-                            <div className="row-label hole-label">Hole</div>
-                            {courseData.holes.map((hole) => (
-                                <div key={hole.number} className="hole-column">
-                                    <div className="hole-number">{hole.number}</div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-number">Total</div>
-                            </div>
+            {showDetailsTable && (
+                <>
+                    <div className="scorecard-header-banner details-header">
+                        <div className="player-info">
+                            <strong>{currentHole && `Hole ${currentHole.number} Details`}</strong>
                         </div>
+                    </div>
 
-                        {/* Fairway hit row */}
-                        <div className="scorecard-row fairway-row">
-                            <div className="row-label fairway-label">FWY</div>
-                            {fairwayHits.map((hit, index) => (
-                                <div key={index} className="hole-column fairway-column">
-                                    <div
-                                        className={`fairway-toggle ${hit ? 'fairway-hit' : 'fairway-miss'}`}
-                                        onClick={() => updateFairwayHit(index, !hit)}
-                                        aria-label={`Fairway hit for hole ${index + 1}`}
-                                        role="checkbox"
-                                        aria-checked={hit}
-                                        tabIndex="0"
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                updateFairwayHit(index, !hit);
-                                            }
-                                        }}
-                                    >
-                                        {hit ? '✓' : ''}
+                    <div className="scorecard-scroll">
+                        <div className="scorecard">
+                            <div className="scorecard-table details-scorecard">
+                                {/* Hole row for details table */}
+                                <div className="scorecard-row hole-number-row">
+                                    <div className="row-label hole-label">Hole</div>
+                                    {courseData.holes.map((hole) => (
+                                        <div key={hole.number} className="hole-column">
+                                            <div className="hole-number">{hole.number}</div>
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        <div className="hole-number">Total</div>
                                     </div>
                                 </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                {totalFairways}
-                            </div>
-                        </div>
 
-                        {/* Putts row */}
-                        <div className="scorecard-row putt-row">
-                            <div className="row-label putt-label">Putts</div>
-                            {puttCounts.map((putts, index) => (
-                                <div key={index} className="hole-column putt-column">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        value={putts || ''}
-                                        onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
-                                        className="putt-input"
-                                        aria-label={`Putts for hole ${index + 1}`}
-                                    />
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                {totalPutts}
-                            </div>
-                        </div>
-
-                        {/* Bunker row */}
-                        <div className="scorecard-row bunker-row">
-                            <div className="row-label bunker-label">Bunker</div>
-                            {bunkerCounts.map((bunkers, index) => (
-                                <div key={index} className="hole-column bunker-column">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        value={bunkers || ''}
-                                        onChange={(e) => updateBunkerCount(index, parseInt(e.target.value) || 0)}
-                                        className="bunker-input"
-                                        aria-label={`Bunkers hit for hole ${index + 1}`}
-                                    />
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                {totalBunkers}
-                            </div>
-                        </div>
-
-                        {/* GIR row */}
-                        <div className="scorecard-row gir-row">
-                            <div className="row-label gir-label">GIR</div>
-                            {girCounts.map((gir, index) => (
-                                <div key={index} className="hole-column gir-column">
-                                    <div
-                                        className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
-                                        onClick={() => updateGirCount(index, !gir)}
-                                        aria-label={`Green in Regulation for hole ${index + 1}`}
-                                        role="checkbox"
-                                        aria-checked={gir}
-                                        tabIndex="0"
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                updateGirCount(index, !gir);
-                                            }
-                                        }}
-                                    >
-                                        {gir ? '✓' : ''}
+                                {/* Fairway hit row */}
+                                <div className="scorecard-row fairway-row">
+                                    <div className="row-label fairway-label">FWY</div>
+                                    {fairwayHits.map((hit, index) => (
+                                        <div key={index} className="hole-column fairway-column">
+                                            <div
+                                                className={`fairway-toggle ${hit ? 'fairway-hit' : 'fairway-miss'}`}
+                                                onClick={() => updateFairwayHit(index, !hit)}
+                                                aria-label={`Fairway hit for hole ${index + 1}`}
+                                                role="checkbox"
+                                                aria-checked={hit}
+                                                tabIndex="0"
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        updateFairwayHit(index, !hit);
+                                                    }
+                                                }}
+                                            >
+                                                {hit ? '✓' : ''}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        {totalFairways}
                                     </div>
                                 </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                {totalGirs}
+
+                                {/* Putts row */}
+                                <div className="scorecard-row putt-row">
+                                    <div className="row-label putt-label">Putts</div>
+                                    {puttCounts.map((putts, index) => (
+                                        <div key={index} className="hole-column putt-column">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                value={putts || ''}
+                                                onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
+                                                className="putt-input"
+                                                aria-label={`Putts for hole ${index + 1}`}
+                                            />
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        {totalPutts}
+                                    </div>
+                                </div>
+
+                                {/* Bunker row */}
+                                <div className="scorecard-row bunker-row">
+                                    <div className="row-label bunker-label">Bunker</div>
+                                    {bunkerCounts.map((bunkers, index) => (
+                                        <div key={index} className="hole-column bunker-column">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                value={bunkers || ''}
+                                                onChange={(e) => updateBunkerCount(index, parseInt(e.target.value) || 0)}
+                                                className="bunker-input"
+                                                aria-label={`Bunkers hit for hole ${index + 1}`}
+                                            />
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        {totalBunkers}
+                                    </div>
+                                </div>
+
+                                {/* GIR row */}
+                                <div className="scorecard-row gir-row">
+                                    <div className="row-label gir-label">GIR</div>
+                                    {girCounts.map((gir, index) => (
+                                        <div key={index} className="hole-column gir-column">
+                                            <div
+                                                className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
+                                                onClick={() => updateGirCount(index, !gir)}
+                                                aria-label={`Green in Regulation for hole ${index + 1}`}
+                                                role="checkbox"
+                                                aria-checked={gir}
+                                                tabIndex="0"
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        updateGirCount(index, !gir);
+                                                    }
+                                                }}
+                                            >
+                                                {gir ? '✓' : ''}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        {totalGirs}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </>
+            )}
         </div>
     )
 }

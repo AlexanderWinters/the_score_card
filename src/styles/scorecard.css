@@ -40,12 +40,12 @@
 
 .hole-number-row .hole-number {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--text-color);
 }
 
 .hole-label {
     background-color: transparent !important;
-    color: var(--text-muted) !important;
+    color: var(--text-color) !important;
     font-weight: normal !important;
     font-size: 12px;
     padding: 6px 10px !important;
@@ -426,4 +426,38 @@
 
 .bunker-input[type=number] {
     -moz-appearance: textfield;
+}
+
+/* Add this to your existing scorecard.css file */
+
+.details-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    margin: 8px auto;
+    background-color: var(--body-bg, #f0f0f0);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color, #333);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    user-select: none;
+    width: fit-content;
+}
+
+.details-toggle:hover {
+    background-color: var(--input-bg, #e0e0e0);
+}
+
+.toggle-icon {
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+/* Adjust spacing between tables when toggle is visible */
+.details-toggle + .scorecard-header-banner {
+    margin-top: 10px;
 }
