@@ -23,12 +23,12 @@ app = FastAPI(title="Golf Course API")
 
 if os.environ.get("ENV") == "production":
     origins = [
-        "https://your-production-domain.com",
-        # Add other allowed origins
+        "https://developer.kknds.com",
     ]
+    DB_PATH = os.environ.get("DATABASE_PATH", "golf.db")
 else:
-    # For development, allow all
     origins = ["*"]
+    DB_PATH = 'golf.db'
 
 app.add_middleware(
     CORSMiddleware,
