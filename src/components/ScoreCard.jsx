@@ -308,30 +308,24 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
                             </div>
                         </div>
 
-                        {/* GIR row */}
-                        <div className="scorecard-row gir-row">
-                            <div className="row-label gir-label">GIR</div>
-                            {girCounts.map((gir, index) => (
-                                <div key={index} className="hole-column gir-column">
-                                    <div
-                                        className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
-                                        onClick={() => updateGirCount(index, !gir)}
-                                        aria-label={`Green in Regulation for hole ${index + 1}`}
-                                        role="checkbox"
-                                        aria-checked={gir}
-                                        tabIndex="0"
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                updateGirCount(index, !gir);
-                                            }
-                                        }}
-                                    >
-                                        {gir ? '✓' : ''}
-                                    </div>
+                        {/* Putts row */}
+                        <div className="scorecard-row putt-row">
+                            <div className="row-label putt-label">Putts</div>
+                            {puttCounts.map((putts, index) => (
+                                <div key={index} className="hole-column putt-column">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        value={putts || ''}
+                                        onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
+                                        className="putt-input"
+                                        aria-label={`Putts for hole ${index + 1}`}
+                                    />
                                 </div>
                             ))}
                             <div className="hole-column total-column">
-                                {totalGirs}
+                                {totalPutts}
                             </div>
                         </div>
 
@@ -356,24 +350,30 @@ function ScoreCard({ scores, updateScore, courseData, /*handicap*/ playerName, r
                             </div>
                         </div>
 
-                        {/* Putts row */}
-                        <div className="scorecard-row putt-row">
-                            <div className="row-label putt-label">Putts</div>
-                            {puttCounts.map((putts, index) => (
-                                <div key={index} className="hole-column putt-column">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        value={putts || ''}
-                                        onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
-                                        className="putt-input"
-                                        aria-label={`Putts for hole ${index + 1}`}
-                                    />
+                        {/* GIR row */}
+                        <div className="scorecard-row gir-row">
+                            <div className="row-label gir-label">GIR</div>
+                            {girCounts.map((gir, index) => (
+                                <div key={index} className="hole-column gir-column">
+                                    <div
+                                        className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
+                                        onClick={() => updateGirCount(index, !gir)}
+                                        aria-label={`Green in Regulation for hole ${index + 1}`}
+                                        role="checkbox"
+                                        aria-checked={gir}
+                                        tabIndex="0"
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                updateGirCount(index, !gir);
+                                            }
+                                        }}
+                                    >
+                                        {gir ? '✓' : ''}
+                                    </div>
                                 </div>
                             ))}
                             <div className="hole-column total-column">
-                                {totalPutts}
+                                {totalGirs}
                             </div>
                         </div>
                     </div>
