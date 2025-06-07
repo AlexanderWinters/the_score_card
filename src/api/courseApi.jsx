@@ -2,9 +2,9 @@
 // Remove the hardcoded base URL
 // const API_BASE_URL = 'http://0.0.0.0:3000/api';
 
-export const fetchAllCourses = async (includeInactive = false) => {
+export const fetchAllCourses = async (include_inactive = false) => {
     try {
-        const url = includeInactive ? '/api/courses?include_inactive=true' : '/api/courses';
+        const url = include_inactive ? '/api/courses?include_inactive=true' : '/api/courses';
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');

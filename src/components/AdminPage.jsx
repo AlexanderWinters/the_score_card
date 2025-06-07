@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAllCourses, addCourse, updateCourse, toggleCourseActive, uploadJsonCourses, uploadCsvCourses } from '../api/courseApi';
+import { fetchAllCourses, addCourse, updateCourse, toggleCourseActive, uploadJsonCourses, uploadCsvCourses, fetchCourseById } from '../api/courseApi';
 import '../styles/adminPage.css';
 import { Link } from "react-router-dom";
 
@@ -40,27 +40,43 @@ function AdminPage() {
         }
     };
 
-    const handleEditCourse = (course) => {
-        // Set the form to editing mode with the course data
-        setEditingCourse(course.id);
-        setCourseName(course.name);
-        setCourseLocation(course.location || '');
-        setCourseDescription(course.description || '');
-
-        // Set tee boxes
-        if (course.teeBoxes && course.teeBoxes.length > 0) {
-            setTeeBoxes(course.teeBoxes.map(tee => ({
-                name: tee.name,
-                holes: tee.holes || []
-            })));
-        } else {
-            setTeeBoxes([{ name: '', holes: [] }]);
-        }
-
-        // Open the modal
-        setIsModalOpen(true);
-        setMessage(null);
+    const handleEditCourse = async (course) => {
+        // Start loading state
+        setLoading(true);
         setError(null);
+
+        try {
+            // Use the existing fetchCourseById function from your API
+            const fullCourseData = await fetchCourseById(course.id);
+
+            // Set the form to editing mode with the complete course data
+            setEditingCourse(fullCourseData.id);
+            setCourseName(fullCourseData.name);
+            setCourseLocation(fullCourseData.location || '');
+            setCourseDescription(fullCourseData.description || '');
+
+            // Set tee boxes with all holes
+            if (fullCourseData.teeBoxes && fullCourseData.teeBoxes.length > 0) {
+                const formattedTeeBoxes = fullCourseData.teeBoxes.map(tee => ({
+                    name: tee.name,
+                    holes: tee.holes.map(hole => ({
+                        ...hole,
+                        parManuallySet: true // Assume all existing pars were manually set
+                    }))
+                }));
+                setTeeBoxes(formattedTeeBoxes);
+            } else {
+                setTeeBoxes([{ name: '', holes: [] }]);
+            }
+
+            // Open the modal
+            setIsModalOpen(true);
+        } catch (err) {
+            setError(err.message || 'Failed to load course details');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAddNewCourse = () => {
@@ -257,7 +273,7 @@ function AdminPage() {
     };
     const handleOutsideClick = (e) => {
         // If the click is on the overlay (not on the modal content), close the modal
-        if (e.target.className === 'modal-overlay') {
+        if (e.target.classList.contains('modal-overlay')) {
             closeModal();
         }
     };
