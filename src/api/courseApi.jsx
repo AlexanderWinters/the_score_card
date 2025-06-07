@@ -2,15 +2,59 @@
 // Remove the hardcoded base URL
 // const API_BASE_URL = 'http://0.0.0.0:3000/api';
 
-export const fetchAllCourses = async () => {
+export const fetchAllCourses = async (includeInactive = false) => {
     try {
-        const response = await fetch('/api/courses');
+        const url = includeInactive ? '/api/courses?include_inactive=true' : '/api/courses';
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching courses:', error);
+        throw error;
+    }
+};
+
+export const updateCourse = async (courseId, courseData) => {
+    try {
+        const response = await fetch(`/api/courses/${courseId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(courseData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to update course');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating course:', error);
+        throw error;
+    }
+};
+
+export const toggleCourseActive = async (courseId) => {
+    try {
+        const response = await fetch(`/api/courses/${courseId}/toggle-active`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to toggle course status');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error toggling course status:', error);
         throw error;
     }
 };

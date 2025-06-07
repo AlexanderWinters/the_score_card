@@ -116,6 +116,7 @@ class Course(BaseModel):
     name: str
     location: Optional[str] = None
     description: Optional[str] = None
+    active: Optional[bool] = True
     teeBoxes: Optional[List[TeeBox]] = None
 
 class HoleCreate(BaseModel):
@@ -147,7 +148,8 @@ def initialize_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             location TEXT,
-            description TEXT
+            description TEXT,
+            active BOOLEAN NOT NULL DEFAULT 1
         )
         ''')
 
@@ -440,9 +442,12 @@ async def get_user_rounds(current_user: dict = Depends(get_current_user)):
 
 # Existing endpoints
 @app.get("/api/courses", response_model=List[Course])
-async def get_all_courses():
+async def get_all_courses(include_inactive: bool = False):
     with get_db_connection() as conn:
-        courses = conn.execute('SELECT * FROM courses').fetchall()
+        if include_inactive:
+            courses = conn.execute('SELECT * FROM courses').fetchall()
+        else:
+            courses = conn.execute('SELECT * FROM courses WHERE active = 1').fetchall()
         return [dict(course) for course in courses]
 
 @app.get("/api/check-database", status_code=200)
@@ -517,6 +522,74 @@ async def get_course_by_id(course_id: int):
         course_dict['teeBoxes'] = tee_boxes_list
 
         return course_dict
+
+# Add these endpoints after the existing course endpoints
+
+@app.put("/api/courses/{course_id}", response_model=Course)
+async def update_course(course_id: int, course: CourseCreate):
+    """Update an existing course with new information"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        # Check if course exists
+        existing = conn.execute('SELECT * FROM courses WHERE id = ?', (course_id,)).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Course not found")
+
+        # Update the course
+        cursor.execute(
+            'UPDATE courses SET name = ?, location = ?, description = ? WHERE id = ?',
+            (course.name, course.location, course.description, course_id)
+        )
+
+        # Delete existing tee boxes and holes for this course
+        tee_boxes = conn.execute('SELECT id FROM tee_boxes WHERE course_id = ?', (course_id,)).fetchall()
+        for tee_box in tee_boxes:
+            cursor.execute('DELETE FROM holes WHERE tee_box_id = ?', (tee_box['id'],))
+        cursor.execute('DELETE FROM tee_boxes WHERE course_id = ?', (course_id,))
+
+        # Insert new tee boxes and holes
+        for tee_box in course.teeBoxes:
+            cursor.execute(
+                'INSERT INTO tee_boxes (course_id, name) VALUES (?, ?)',
+                (course_id, tee_box.name)
+            )
+            tee_box_id = cursor.lastrowid
+
+            # Insert holes for this tee box
+            for hole in tee_box.holes:
+                cursor.execute(
+                    'INSERT INTO holes (tee_box_id, number, distance, par, hcp_index) VALUES (?, ?, ?, ?, ?)',
+                    (tee_box_id, hole.number, hole.distance, hole.par, hole.hcp_index)
+                )
+
+        conn.commit()
+
+        # Return the updated course
+        return await get_course_by_id(course_id)
+
+@app.patch("/api/courses/{course_id}/toggle-active", status_code=200)
+async def toggle_course_active(course_id: int):
+    """Toggle the active status of a course"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        # Check if course exists
+        existing = conn.execute('SELECT * FROM courses WHERE id = ?', (course_id,)).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Course not found")
+
+        # Toggle the active status
+        current_status = existing['active'] if 'active' in existing.keys() else 1
+        new_status = 0 if current_status else 1
+
+        cursor.execute(
+            'UPDATE courses SET active = ? WHERE id = ?',
+            (new_status, course_id)
+        )
+        conn.commit()
+
+        return {"id": course_id, "active": bool(new_status)}
 
 @app.post("/api/seed", status_code=201)
 async def seed_database():

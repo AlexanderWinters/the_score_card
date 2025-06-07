@@ -483,3 +483,146 @@
 .add-holes-button:hover {
     background-color: var(--primary-color-dark);
 }
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+
+.toggle-inactive {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.toggle-inactive input {
+    margin-right: 0.5rem;
+}
+
+
+.course-card.inactive {
+    opacity: 0.7;
+    border: 1px solid #f0f0f0;
+    background-color: #f9f9f9;
+}
+
+.course-status {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.course-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.edit-button, .toggle-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.edit-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.toggle-button.deactivate {
+    background-color: #f44336;
+    color: white;
+}
+
+.toggle-button.activate {
+    background-color: #2196F3;
+    color: white;
+}
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-container {
+    background-color: var(--app-bg);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background-color: var(--app-bg);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-button:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(90vh - 70px); /* Subtract header height */
+}
+
+/* Make sure the form in the modal looks good */
+.modal-body .course-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Existing styles for courses header */
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.toggle-inactive {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.toggle-inactive input {
+    margin-right: 0.5rem;
+}

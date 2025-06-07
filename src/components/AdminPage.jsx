@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAllCourses, addCourse, uploadJsonCourses, uploadCsvCourses } from '../api/courseApi';
+import { fetchAllCourses, addCourse, updateCourse, toggleCourseActive, uploadJsonCourses, uploadCsvCourses } from '../api/courseApi';
 import '../styles/adminPage.css';
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function AdminPage() {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
+    const [showInactive, setShowInactive] = useState(true);
 
-    // Form state
-    const [showForm, setShowForm] = useState(false);
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingCourse, setEditingCourse] = useState(null);
     const [courseName, setCourseName] = useState('');
     const [courseLocation, setCourseLocation] = useState('');
     const [courseDescription, setCourseDescription] = useState('');
-    const [teeBoxes, setTeeBoxes] = useState([{ name: '', color: '', holes: [] }]);
+    const [teeBoxes, setTeeBoxes] = useState([{ name: '', holes: [] }]);
 
     // File upload state
     const [jsonFile, setJsonFile] = useState(null);
@@ -23,15 +25,59 @@ function AdminPage() {
     // Load courses on component mount
     useEffect(() => {
         loadCourses();
-    }, []);
+    }, [showInactive]);
 
     const loadCourses = async () => {
         setLoading(true);
         try {
-            const data = await fetchAllCourses();
+            const data = await fetchAllCourses(showInactive);
             setCourses(data);
         } catch (err) {
             setError('Failed to load courses');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEditCourse = (course) => {
+        // Set the form to editing mode with the course data
+        setEditingCourse(course.id);
+        setCourseName(course.name);
+        setCourseLocation(course.location || '');
+        setCourseDescription(course.description || '');
+
+        // Set tee boxes
+        if (course.teeBoxes && course.teeBoxes.length > 0) {
+            setTeeBoxes(course.teeBoxes.map(tee => ({
+                name: tee.name,
+                holes: tee.holes || []
+            })));
+        } else {
+            setTeeBoxes([{ name: '', holes: [] }]);
+        }
+
+        // Open the modal
+        setIsModalOpen(true);
+        setMessage(null);
+        setError(null);
+    };
+
+    const handleAddNewCourse = () => {
+        // Reset form for adding a new course
+        resetForm();
+        // Open the modal
+        setIsModalOpen(true);
+    };
+
+    const handleToggleActive = async (courseId) => {
+        setLoading(true);
+        try {
+            await toggleCourseActive(courseId);
+            setMessage('Course status updated successfully!');
+            loadCourses();
+        } catch (err) {
+            setError('Failed to update course status');
             console.error(err);
         } finally {
             setLoading(false);
@@ -47,7 +93,7 @@ function AdminPage() {
 
     // Add a new tee box
     const addTeeBox = () => {
-        setTeeBoxes([...teeBoxes, { name: '', color: '', holes: [] }]);
+        setTeeBoxes([...teeBoxes, { name: '', holes: [] }]);
     };
 
     // Remove a tee box
@@ -55,6 +101,21 @@ function AdminPage() {
         const updatedTeeBoxes = [...teeBoxes];
         updatedTeeBoxes.splice(index, 1);
         setTeeBoxes(updatedTeeBoxes);
+    };
+
+    // Reset the form
+    const resetForm = () => {
+        setEditingCourse(null);
+        setCourseName('');
+        setCourseLocation('');
+        setCourseDescription('');
+        setTeeBoxes([{ name: '', holes: [] }]);
+    };
+
+    // Close the modal
+    const closeModal = () => {
+        setIsModalOpen(false);
+        resetForm();
     };
 
     // Submit the form
@@ -74,12 +135,10 @@ function AdminPage() {
                 throw new Error('At least one tee box is required');
             }
 
-
-// Update this part in the handleSubmitForm function
-// Validate tee boxes
+            // Validate tee boxes
             const validTeeBoxes = teeBoxes.filter(tee => {
-                // Check name and color
-                if (!tee.name.trim() || !tee.color.trim()) return false;
+                // Check name
+                if (!tee.name.trim()) return false;
 
                 // Check if has 18 holes
                 if (tee.holes.length !== 18) return false;
@@ -96,7 +155,7 @@ function AdminPage() {
             });
 
             if (validTeeBoxes.length === 0) {
-                throw new Error('Each tee box must have a name, color, and 18 holes with valid details');
+                throw new Error('Each tee box must have a name and 18 holes with valid details');
             }
 
             const cleanedTeeBoxes = validTeeBoxes.map(teeBox => ({
@@ -118,24 +177,25 @@ function AdminPage() {
                 teeBoxes: cleanedTeeBoxes
             };
 
-            // Submit the course
-            const result = await addCourse(courseData);
+            let result;
+            if (editingCourse) {
+                // Update existing course
+                result = await updateCourse(editingCourse, courseData);
+                setMessage(`Course "${result.name}" updated successfully!`);
+            } else {
+                // Add new course
+                result = await addCourse(courseData);
+                setMessage(`Course "${result.name}" added successfully!`);
+            }
 
-            // Success
-            setMessage(`Course "${result.name}" added successfully!`);
-
-            // Reset form
-            setCourseName('');
-            setCourseLocation('');
-            setCourseDescription('');
-            setTeeBoxes([{ name: '', color: '', holes: [] }]);
-            setShowForm(false);
+            // Close the modal
+            closeModal();
 
             // Reload courses
             loadCourses();
 
         } catch (err) {
-            setError(err.message || 'Failed to add course');
+            setError(err.message || 'Failed to process course');
             console.error(err);
         } finally {
             setLoading(false);
@@ -195,6 +255,13 @@ function AdminPage() {
             setLoading(false);
         }
     };
+    const handleOutsideClick = (e) => {
+        // If the click is on the overlay (not on the modal content), close the modal
+        if (e.target.className === 'modal-overlay') {
+            closeModal();
+        }
+    };
+
 
     return (
         <div className="admin-page">
@@ -208,10 +275,10 @@ function AdminPage() {
 
             <div className="admin-actions">
                 <button
-                    className={`action-button ${showForm ? 'active' : ''}`}
-                    onClick={() => setShowForm(!showForm)}
+                    className="action-button"
+                    onClick={handleAddNewCourse}
                 >
-                    {showForm ? 'Hide Form' : 'Add New Course'}
+                    Add New Course
                 </button>
                 <button className="action-button" onClick={loadCourses} disabled={loading}>
                     Refresh Courses
@@ -219,234 +286,230 @@ function AdminPage() {
                 <Link to="/" className="action-button back">Back to App</Link>
             </div>
 
-            {showForm && (
-                <div className="course-form-container">
-                    <h2>Add New Course</h2>
-                    <form onSubmit={handleSubmitForm} className="course-form">
-                        <div className="form-section">
-                            <h3>Course Details</h3>
-                            <div className="form-group">
-                                <label htmlFor="courseName">Course Name *</label>
-                                <input
-                                    id="courseName"
-                                    type="text"
-                                    value={courseName}
-                                    onChange={(e) => setCourseName(e.target.value)}
-                                    required
-                                    placeholder="Enter course name"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="courseLocation">Location</label>
-                                <input
-                                    id="courseLocation"
-                                    type="text"
-                                    value={courseLocation}
-                                    onChange={(e) => setCourseLocation(e.target.value)}
-                                    placeholder="City, Country"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="courseDescription">Description</label>
-                                <textarea
-                                    id="courseDescription"
-                                    value={courseDescription}
-                                    onChange={(e) => setCourseDescription(e.target.value)}
-                                    placeholder="Brief description of the course"
-                                    rows="3"
-                                />
-                            </div>
+            {/* Course Modal */}
+            {isModalOpen && (
+                <div className="modal-overlay" onClick={handleOutsideClick}>
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h2>{editingCourse ? 'Edit Course' : 'Add New Course'}</h2>
+                            <button className="close-button" onClick={closeModal}>×</button>
                         </div>
-
-                        <div className="form-section">
-                            <h3>Tee Boxes</h3>
-                            {teeBoxes.map((teeBox, index) => (
-                                <div key={index} className="tee-box-form">
-                                    <div className="tee-box-header">
-                                        <h4>Tee Box {index + 1}</h4>
-                                        <button
-                                            type="button"
-                                            className="remove-button"
-                                            onClick={() => removeTeeBox(index)}
-                                            disabled={teeBoxes.length <= 1}
-                                        >
-                                            Remove
-                                        </button>
+                        <div className="modal-body">
+                            <form onSubmit={handleSubmitForm} className="course-form">
+                                <div className="form-section">
+                                    <h3>Course Details</h3>
+                                    <div className="form-group">
+                                        <label htmlFor="courseName">Course Name *</label>
+                                        <input
+                                            id="courseName"
+                                            type="text"
+                                            value={courseName}
+                                            onChange={(e) => setCourseName(e.target.value)}
+                                            required
+                                            placeholder="Enter course name"
+                                        />
                                     </div>
 
-                                    <div className="tee-box-fields">
-                                        <div className="form-group">
-                                            <label htmlFor={`teeName${index}`}>Tee Name *</label>
-                                            <input
-                                                id={`teeName${index}`}
-                                                type="text"
-                                                value={teeBox.name}
-                                                onChange={(e) => handleTeeBoxChange(index, 'name', e.target.value)}
-                                                required
-                                                placeholder="Championship, Club, etc."
-                                            />
-                                        </div>
-
-                                        {/* <div className="form-group">*/}
-                                        {/*    <label htmlFor={`teeColor${index}`}>Tee Color *</label>*/}
-                                        {/*    <input*/}
-                                        {/*        id={`teeColor${index}`}*/}
-                                        {/*        type="text"*/}
-                                        {/*        value={teeBox.color}*/}
-                                        {/*        onChange={(e) => handleTeeBoxChange(index, 'color', e.target.value)}*/}
-                                        {/*        required*/}
-                                        {/*        placeholder="Black, Blue, Red, etc."*/}
-                                        {/*    />*/}
-                                        {/*</div>*/}
+                                    <div className="form-group">
+                                        <label htmlFor="courseLocation">Location</label>
+                                        <input
+                                            id="courseLocation"
+                                            type="text"
+                                            value={courseLocation}
+                                            onChange={(e) => setCourseLocation(e.target.value)}
+                                            placeholder="City, Country"
+                                        />
                                     </div>
 
-                                    <div className="holes-section">
-                                        <div className="holes-header">
-                                            <h5>Holes ({teeBox.holes.length}/18)</h5>
-                                        </div>
-
-                                        {teeBox.holes.length > 0 ? (
-                                            <div className="holes-table">
-                                                <table className="hole-details-table">
-                                                    <thead>
-                                                    <tr>
-                                                        <th>Hole</th>
-                                                        <th>Distance (meters)</th>
-                                                        <th>Par</th>
-                                                        <th>Handicap Index</th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    {teeBox.holes.map((hole, holeIndex) => (
-                                                        <tr key={holeIndex}>
-                                                            <td>{hole.number}</td>
-                                                            <td>
-                                                                <input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    value={hole.distance || ''}
-                                                                    onChange={(e) => {
-                                                                        const distance = Number(e.target.value);
-                                                                        const updatedTeeBoxes = [...teeBoxes];
-                                                                        updatedTeeBoxes[index].holes[holeIndex].distance = distance;
-
-                                                                        // Auto-set par based on distance
-                                                                        if (distance > 0) {
-                                                                            let suggestedPar;
-                                                                            if (distance <= 200) suggestedPar = 3;
-                                                                            else if (distance <= 380) suggestedPar = 4;
-                                                                            else suggestedPar = 5;
-
-                                                                            // Only update par if it wasn't explicitly set before
-                                                                            if (!updatedTeeBoxes[index].holes[holeIndex].parManuallySet) {
-                                                                                updatedTeeBoxes[index].holes[holeIndex].par = suggestedPar;
-                                                                            }
-                                                                        }
-
-                                                                        setTeeBoxes(updatedTeeBoxes);
-                                                                    }}
-                                                                    required
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <select
-                                                                    value={hole.par || 4}
-                                                                    onChange={(e) => {
-                                                                        const updatedTeeBoxes = [...teeBoxes];
-                                                                        updatedTeeBoxes[index].holes[holeIndex].par = Number(e.target.value);
-                                                                        // Mark that par was manually set
-                                                                        updatedTeeBoxes[index].holes[holeIndex].parManuallySet = true;
-                                                                        setTeeBoxes(updatedTeeBoxes);
-                                                                    }}
-                                                                    required
-                                                                >
-                                                                    <option value={3}>3</option>
-                                                                    <option value={4}>4</option>
-                                                                    <option value={5}>5</option>
-                                                                </select>
-                                                            </td>
-                                                            <td>
-                                                                <input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    max="18"
-                                                                    value={hole.hcp_index || ''}
-                                                                    onChange={(e) => {
-                                                                        const updatedTeeBoxes = [...teeBoxes];
-                                                                        updatedTeeBoxes[index].holes[holeIndex].hcp_index = Number(e.target.value);
-                                                                        setTeeBoxes(updatedTeeBoxes);
-                                                                    }}
-                                                                    required
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                    </tbody>
-                                                </table>
-                                                <div className="holes-summary">
-                                                    Total Distance: {teeBox.holes.reduce((sum, hole) => sum + (hole.distance || 0), 0)} meters
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="add-holes-container">
-                                                <button
-                                                    type="button"
-                                                    className="add-holes-button"
-                                                    onClick={() => {
-                                                        const updatedTeeBoxes = [...teeBoxes];
-                                                        const holes = [];
-
-                                                        for (let i = 1; i <= 18; i++) {
-                                                            holes.push({
-                                                                number: i,
-                                                                distance: 0,
-                                                                par: 4,
-                                                                hcp_index: i,
-                                                                parManuallySet: false // Add flag to track manual par changes
-                                                            });
-                                                        }
-
-                                                        updatedTeeBoxes[index].holes = holes;
-                                                        setTeeBoxes(updatedTeeBoxes);
-                                                    }}
-                                                >
-                                                    Add Holes
-                                                </button>
-                                            </div>
-                                        )}
+                                    <div className="form-group">
+                                        <label htmlFor="courseDescription">Description</label>
+                                        <textarea
+                                            id="courseDescription"
+                                            value={courseDescription}
+                                            onChange={(e) => setCourseDescription(e.target.value)}
+                                            placeholder="Brief description of the course"
+                                            rows="3"
+                                        />
                                     </div>
                                 </div>
-                            ))}
 
-                            <button
-                                type="button"
-                                className="add-button"
-                                onClick={addTeeBox}
-                            >
-                                Add Another Tee Box
-                            </button>
-                        </div>
+                                <div className="form-section">
+                                    <h3>Tee Boxes</h3>
+                                    {teeBoxes.map((teeBox, index) => (
+                                        <div key={index} className="tee-box-form">
+                                            <div className="tee-box-header">
+                                                <h4>Tee Box {index + 1}</h4>
+                                                <button
+                                                    type="button"
+                                                    className="remove-button"
+                                                    onClick={() => removeTeeBox(index)}
+                                                    disabled={teeBoxes.length <= 1}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
 
-                        <div className="form-actions">
-                            <button
-                                type="submit"
-                                className="submit-button"
-                                disabled={loading}
-                            >
-                                {loading ? 'Adding...' : 'Add Course'}
-                            </button>
-                            <button
-                                type="button"
-                                className="cancel-button"
-                                onClick={() => setShowForm(false)}
-                                disabled={loading}
-                            >
-                                Cancel
-                            </button>
+                                            <div className="tee-box-fields">
+                                                <div className="form-group">
+                                                    <label htmlFor={`teeName${index}`}>Tee Name *</label>
+                                                    <input
+                                                        id={`teeName${index}`}
+                                                        type="text"
+                                                        value={teeBox.name}
+                                                        onChange={(e) => handleTeeBoxChange(index, 'name', e.target.value)}
+                                                        required
+                                                        placeholder="Championship, Club, etc."
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="holes-section">
+                                                <div className="holes-header">
+                                                    <h5>Holes ({teeBox.holes.length}/18)</h5>
+                                                </div>
+
+                                                {teeBox.holes.length > 0 ? (
+                                                    <div className="holes-table">
+                                                        <table className="hole-details-table">
+                                                            <thead>
+                                                            <tr>
+                                                                <th>Hole</th>
+                                                                <th>Distance (meters)</th>
+                                                                <th>Par</th>
+                                                                <th>Handicap Index</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {teeBox.holes.map((hole, holeIndex) => (
+                                                                <tr key={holeIndex}>
+                                                                    <td>{hole.number}</td>
+                                                                    <td>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={hole.distance || ''}
+                                                                            onChange={(e) => {
+                                                                                const distance = Number(e.target.value);
+                                                                                const updatedTeeBoxes = [...teeBoxes];
+                                                                                updatedTeeBoxes[index].holes[holeIndex].distance = distance;
+
+                                                                                // Auto-set par based on distance
+                                                                                if (distance > 0) {
+                                                                                    let suggestedPar;
+                                                                                    if (distance <= 200) suggestedPar = 3;
+                                                                                    else if (distance <= 380) suggestedPar = 4;
+                                                                                    else suggestedPar = 5;
+
+                                                                                    // Only update par if it wasn't explicitly set before
+                                                                                    if (!updatedTeeBoxes[index].holes[holeIndex].parManuallySet) {
+                                                                                        updatedTeeBoxes[index].holes[holeIndex].par = suggestedPar;
+                                                                                    }
+                                                                                }
+
+                                                                                setTeeBoxes(updatedTeeBoxes);
+                                                                            }}
+                                                                            required
+                                                                        />
+                                                                    </td>
+                                                                    <td>
+                                                                        <select
+                                                                            value={hole.par || 4}
+                                                                            onChange={(e) => {
+                                                                                const updatedTeeBoxes = [...teeBoxes];
+                                                                                updatedTeeBoxes[index].holes[holeIndex].par = Number(e.target.value);
+                                                                                // Mark that par was manually set
+                                                                                updatedTeeBoxes[index].holes[holeIndex].parManuallySet = true;
+                                                                                setTeeBoxes(updatedTeeBoxes);
+                                                                            }}
+                                                                            required
+                                                                        >
+                                                                            <option value={3}>3</option>
+                                                                            <option value={4}>4</option>
+                                                                            <option value={5}>5</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            max="18"
+                                                                            value={hole.hcp_index || ''}
+                                                                            onChange={(e) => {
+                                                                                const updatedTeeBoxes = [...teeBoxes];
+                                                                                updatedTeeBoxes[index].holes[holeIndex].hcp_index = Number(e.target.value);
+                                                                                setTeeBoxes(updatedTeeBoxes);
+                                                                            }}
+                                                                            required
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            </tbody>
+                                                        </table>
+                                                        <div className="holes-summary">
+                                                            Total Distance: {teeBox.holes.reduce((sum, hole) => sum + (hole.distance || 0), 0)} meters
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="add-holes-container">
+                                                        <button
+                                                            type="button"
+                                                            className="add-holes-button"
+                                                            onClick={() => {
+                                                                const updatedTeeBoxes = [...teeBoxes];
+                                                                const holes = [];
+
+                                                                for (let i = 1; i <= 18; i++) {
+                                                                    holes.push({
+                                                                        number: i,
+                                                                        distance: 0,
+                                                                        par: 4,
+                                                                        hcp_index: i,
+                                                                        parManuallySet: false // Add flag to track manual par changes
+                                                                    });
+                                                                }
+
+                                                                updatedTeeBoxes[index].holes = holes;
+                                                                setTeeBoxes(updatedTeeBoxes);
+                                                            }}
+                                                        >
+                                                            Add Holes
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <button
+                                        type="button"
+                                        className="add-button"
+                                        onClick={addTeeBox}
+                                    >
+                                        Add Another Tee Box
+                                    </button>
+                                </div>
+
+                                <div className="form-actions">
+                                    <button
+                                        type="submit"
+                                        className="submit-button"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (editingCourse ? 'Updating...' : 'Adding...') : (editingCourse ? 'Update Course' : 'Add Course')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="cancel-button"
+                                        onClick={closeModal}
+                                        disabled={loading}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
             )}
 
@@ -526,16 +589,43 @@ function AdminPage() {
             </div>
 
             <div className="courses-list-section">
-                <h2>Existing Courses ({courses.length})</h2>
+                <div className="courses-header">
+                    <h2>Existing Courses ({courses.length})</h2>
+                    <label className="toggle-inactive">
+                        <input
+                            type="checkbox"
+                            checked={showInactive}
+                            onChange={() => setShowInactive(!showInactive)}
+                        />
+                        Show Inactive Courses
+                    </label>
+                </div>
                 {loading ? (
                     <div className="loading">Loading courses...</div>
                 ) : (
                     <div className="courses-grid">
                         {courses.map(course => (
-                            <div key={course.id} className="course-card">
+                            <div key={course.id} className={`course-card ${!course.active ? 'inactive' : ''}`}>
                                 <h3>{course.name}</h3>
                                 <p className="course-location">{course.location || 'No location specified'}</p>
                                 <p className="course-description">{course.description || 'No description available'}</p>
+                                <div className="course-status">
+                                    Status: {course.active ? 'Active' : 'Inactive'}
+                                </div>
+                                <div className="course-actions">
+                                    <button
+                                        className="edit-button"
+                                        onClick={() => handleEditCourse(course)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className={`toggle-button ${!course.active ? 'activate' : 'deactivate'}`}
+                                        onClick={() => handleToggleActive(course.id)}
+                                    >
+                                        {course.active ? 'Deactivate' : 'Activate'}
+                                    </button>
+                                </div>
                             </div>
                         ))}
                         {courses.length === 0 && (
