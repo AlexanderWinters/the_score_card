@@ -444,6 +444,10 @@
 }
 
 @media (max-width: 480px) {
+    .rounds-history-container {
+        padding: 12px;
+    }
+
     .round-stats-grid {
         grid-template-columns: 1fr;
     }

@@ -76,7 +76,7 @@
   }
 
   .app-header .theme-toggle {
-    align-self: flex-end;
+    align-self: flex-start;
   }
 
   .app-header .settings-container {
@@ -86,9 +86,20 @@
   }
 }
 
+@media (max-width: 480px) {
+  #root {
+    padding: 12px;
+  }
+
+  .app {
+    padding: 12px;
+    margin: 4px;
+  }
+}
+
 body {
   margin: 0;
-  padding: 0;
+  padding: 20px;
   background-color: var(--body-bg);
   color: var(--text-color);
   font-family: var(--font-family);
@@ -96,6 +107,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+  box-sizing: border-box;
 }
 
 
@@ -367,18 +379,26 @@ h1::after {
 }
 
 .putt-input {
-  width: 32px;
-  height: 32px;
-  text-align: center;
-  border: 2px solid var(--input-border);
-  border-radius: 8px;
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  font-size: 16px;
-  font-weight: 500;
-  transition: all var(--transition-speed) ease;
-  padding: 0;
-  box-shadow: var(--soft-shadow);
+    width: 32px;
+    height: 32px;
+    text-align: center;
+    border: 2px solid var(--input-border);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    padding: 0;
+    box-shadow: var(--soft-shadow);
+}
+
+@media (max-width: 480px) {
+    .putt-input {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
 }
 
 .putt-input:focus {
