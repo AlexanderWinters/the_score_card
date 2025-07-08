@@ -256,39 +256,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                             </div>
                         </div>
 
-                        {/* HCP Index row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">HCP Index</div>
-                            {courseData.holes.map((hole, index) => (
-                                <div key={index} className="hole-column">
-                                    <div className="hole-hcp">{hole.hcp_index || '-'}</div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-hcp">-</div>
-                            </div>
-                        </div>
 
-                        {/* Net Score row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">Net Score</div>
-                            {courseData.holes.map((hole, index) => (
-                                <div key={index} className="hole-column">
-                                    <div className="hole-net-score">
-                                        {scores[index] ? getNetScore(scores[index], index) : '-'}
-                                    </div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-net-score">
-                                    {handicap && scores.reduce((sum, score, index) => {
-                                        if (!score) return sum;
-                                        const netScore = getNetScore(score, index);
-                                        return netScore !== '-' ? sum + netScore : sum;
-                                    }, 0) || '-'}
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -320,6 +288,7 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                     <div className="scorecard-scroll">
                         <div className="scorecard">
                             <div className="scorecard-table details-scorecard">
+
                                 {/* Hole row for details table */}
                                 <div className="scorecard-row hole-number-row">
                                     <div className="row-label hole-label">Hole</div>
@@ -330,6 +299,39 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                                     ))}
                                     <div className="hole-column total-column">
                                         <div className="hole-number">Total</div>
+                                    </div>
+                                </div>
+                                {/* HCP Index row */}
+                                <div className="scorecard-row">
+                                    <div className="row-label">HCP</div>
+                                    {courseData.holes.map((hole, index) => (
+                                        <div key={index} className="hole-column">
+                                            <div className="hole-hcp">{hole.hcp_index || '-'}</div>
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        <div className="hole-hcp">-</div>
+                                    </div>
+                                </div>
+
+                                {/* Net Score row */}
+                                <div className="scorecard-row">
+                                    <div className="row-label">Net</div>
+                                    {courseData.holes.map((hole, index) => (
+                                        <div key={index} className="hole-column">
+                                            <div className="hole-net-score">
+                                                {scores[index] ? getNetScore(scores[index], index) : '-'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="hole-column total-column">
+                                        <div className="hole-net-score">
+                                            {handicap && scores.reduce((sum, score, index) => {
+                                                if (!score) return sum;
+                                                const netScore = getNetScore(score, index);
+                                                return netScore !== '-' ? sum + netScore : sum;
+                                            }, 0) || '-'}
+                                        </div>
                                     </div>
                                 </div>
 
