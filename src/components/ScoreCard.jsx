@@ -166,9 +166,277 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
         return "";
     };
 
+    // Split holes into front 9 and back 9
+    const frontNine = courseData.holes.slice(0, 9);
+    const backNine = courseData.holes.slice(9, 18);
+
+    // Helper function to render a scorecard section
+    const renderScorecardSection = (holes, startIndex, sectionName) => {
+        const sectionScores = scores.slice(startIndex, startIndex + 9);
+        const sectionPar = holes.reduce((sum, hole) => sum + hole.par, 0);
+        const sectionTotal = sectionScores.reduce((sum, score) => sum + score, 0);
+
+        return (
+            <div className="scorecard-section">
+                <div className="section-header">{sectionName}</div>
+
+                {/* Hole Numbers Row */}
+                <div className="scorecard-row hole-number-row">
+                    {holes.map((hole) => (
+                        <div key={hole.number} className="hole-column">
+                            <div className="hole-number">{hole.number}</div>
+                        </div>
+                    ))}
+                    <div className="hole-column total-column">
+                        <div className="hole-number">Out</div>
+                    </div>
+                </div>
+
+                {/* Par Row */}
+                <div className="scorecard-row">
+                    {holes.map((hole, index) => (
+                        <div key={index} className="hole-column">
+                            <div className="hole-par">{hole.par}</div>
+                        </div>
+                    ))}
+                    <div className="hole-column total-column">
+                        <div className="hole-par">{sectionPar}</div>
+                    </div>
+                </div>
+
+                {/* Score Row */}
+                <div className="scorecard-row">
+                    {holes.map((hole, index) => {
+                        const globalIndex = startIndex + index;
+                        const scoreType = getScoreType(scores[globalIndex], hole.par);
+                        const scoreClass = getScoreClass(scoreType);
+                        const textColorClass = getTextColorClass(scoreType);
+
+                        return (
+                            <div key={index} className="hole-column">
+                                <div className="hole-score">
+                                    <div className="score-container">
+                                        {scoreClass ? (
+                                            <div className={scoreClass}>
+                                                <input
+                                                    type="number"
+                                                    value={scores[globalIndex] === 0 ? '' : scores[globalIndex]}
+                                                    onChange={(e) => handleScoreUpdate(globalIndex, Number(e.target.value) || 0)}
+                                                    min="1"
+                                                    max="20"
+                                                    placeholder="-"
+                                                    className={`score-input ${textColorClass}`}
+                                                    aria-label={`Score for hole ${globalIndex + 1}`}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="number"
+                                                value={scores[globalIndex] === 0 ? '' : scores[globalIndex]}
+                                                onChange={(e) => handleScoreUpdate(globalIndex, Number(e.target.value) || 0)}
+                                                min="1"
+                                                max="20"
+                                                placeholder="-"
+                                                className="score-input"
+                                                aria-label={`Score for hole ${globalIndex + 1}`}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        <div className="hole-score">
+                            {sectionTotal || '-'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Helper function to render details section
+    const renderDetailsSection = (holes, startIndex, sectionName) => {
+        const sectionPutts = puttCounts.slice(startIndex, startIndex + 9);
+        const sectionGirs = girCounts.slice(startIndex, startIndex + 9);
+        const sectionFairways = fairwayHits.slice(startIndex, startIndex + 9);
+        const sectionBunkers = bunkerCounts.slice(startIndex, startIndex + 9);
+
+        const sectionTotalPutts = sectionPutts.reduce((sum, count) => sum + count, 0);
+        const sectionTotalGirs = sectionGirs.filter(gir => gir).length;
+        const sectionTotalFairways = sectionFairways.filter(hit => hit).length;
+        const sectionTotalBunkers = sectionBunkers.reduce((sum, count) => sum + count, 0);
+
+        return (
+            <div className="scorecard-section">
+                <div className="section-header">{sectionName} Details</div>
+
+                {/* Hole Numbers Row */}
+                <div className="scorecard-row hole-number-row">
+                    <div className="row-label">Hole</div>
+                    {holes.map((hole) => (
+                        <div key={hole.number} className="hole-column">
+                            <div className="hole-number">{hole.number}</div>
+                        </div>
+                    ))}
+                    <div className="hole-column total-column">
+                        <div className="hole-number">Total</div>
+                    </div>
+                </div>
+
+                {/* HCP Index row */}
+                <div className="scorecard-row">
+                    <div className="row-label">HCP</div>
+                    {holes.map((hole, index) => (
+                        <div key={index} className="hole-column">
+                            <div className="hole-hcp">{hole.hcp_index || '-'}</div>
+                        </div>
+                    ))}
+                    <div className="hole-column total-column">
+                        <div className="hole-hcp">-</div>
+                    </div>
+                </div>
+
+                {/* Net Score row */}
+                <div className="scorecard-row">
+                    <div className="row-label">Net</div>
+                    {holes.map((hole, index) => {
+                        const globalIndex = startIndex + index;
+                        return (
+                            <div key={index} className="hole-column">
+                                <div className="hole-net-score">
+                                    {scores[globalIndex] ? getNetScore(scores[globalIndex], globalIndex) : '-'}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        <div className="hole-net-score">
+                            {handicap && scores.slice(startIndex, startIndex + 9).reduce((sum, score, index) => {
+                                if (!score) return sum;
+                                const globalIndex = startIndex + index;
+                                const netScore = getNetScore(score, globalIndex);
+                                return netScore !== '-' ? sum + netScore : sum;
+                            }, 0) || '-'}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fairway hit row */}
+                <div className="scorecard-row fairway-row">
+                    <div className="row-label fairway-label">FWY</div>
+                    {sectionFairways.map((hit, index) => {
+                        const globalIndex = startIndex + index;
+                        return (
+                            <div key={index} className="hole-column fairway-column">
+                                <div
+                                    className={`fairway-toggle ${hit ? 'fairway-hit' : 'fairway-miss'}`}
+                                    onClick={() => updateFairwayHit(globalIndex, !hit)}
+                                    aria-label={`Fairway hit for hole ${globalIndex + 1}`}
+                                    role="checkbox"
+                                    aria-checked={hit}
+                                    tabIndex="0"
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            updateFairwayHit(globalIndex, !hit);
+                                        }
+                                    }}
+                                >
+                                    {hit ? '✓' : ''}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        {sectionTotalFairways}
+                    </div>
+                </div>
+
+                {/* Putts row */}
+                <div className="scorecard-row putt-row">
+                    <div className="row-label putt-label">Putts</div>
+                    {sectionPutts.map((putts, index) => {
+                        const globalIndex = startIndex + index;
+                        return (
+                            <div key={index} className="hole-column putt-column">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    value={putts || ''}
+                                    onChange={(e) => updatePuttCount(globalIndex, parseInt(e.target.value) || 0)}
+                                    className="putt-input"
+                                    aria-label={`Putts for hole ${globalIndex + 1}`}
+                                />
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        {sectionTotalPutts}
+                    </div>
+                </div>
+
+                {/* Bunker row */}
+                <div className="scorecard-row bunker-row">
+                    <div className="row-label bunker-label">Bunker</div>
+                    {sectionBunkers.map((bunkers, index) => {
+                        const globalIndex = startIndex + index;
+                        return (
+                            <div key={index} className="hole-column bunker-column">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    value={bunkers || ''}
+                                    onChange={(e) => updateBunkerCount(globalIndex, parseInt(e.target.value) || 0)}
+                                    className="bunker-input"
+                                    aria-label={`Bunkers hit for hole ${globalIndex + 1}`}
+                                />
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        {sectionTotalBunkers}
+                    </div>
+                </div>
+
+                {/* GIR row */}
+                <div className="scorecard-row gir-row">
+                    <div className="row-label gir-label">GIR</div>
+                    {sectionGirs.map((gir, index) => {
+                        const globalIndex = startIndex + index;
+                        return (
+                            <div key={index} className="hole-column gir-column">
+                                <div
+                                    className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
+                                    onClick={() => updateGirCount(globalIndex, !gir)}
+                                    aria-label={`Green in Regulation for hole ${globalIndex + 1}`}
+                                    role="checkbox"
+                                    aria-checked={gir}
+                                    tabIndex="0"
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            updateGirCount(globalIndex, !gir);
+                                        }
+                                    }}
+                                >
+                                    {gir ? '✓' : ''}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div className="hole-column total-column">
+                        {sectionTotalGirs}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="scorecard-container">
-            {/* FIRST TABLE: Main Scorecard */}
+            {/* Player Info Header */}
             <div className="scorecard-header-banner">
                 <div className="player-info">
                     {playerName} • {courseData.name}
@@ -176,88 +444,27 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                 </div>
             </div>
 
-            <div className="scorecard-scroll">
-                <div className="scorecard">
-                    <div className="scorecard-table main-scorecard">
-                        {/* Minimal Hole row */}
-                        <div className="scorecard-row hole-number-row">
-                            <div className="row-label hole-label">Hole</div>
-                            {courseData.holes.map((hole) => (
-                                <div key={hole.number} className="hole-column">
-                                    <div className="hole-number">{hole.number}</div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-number">Total</div>
-                            </div>
+            {/* Main Scorecard Sections */}
+            <div className="scorecard-sections">
+                {renderScorecardSection(frontNine, 0, "Front 9")}
+                {renderScorecardSection(backNine, 9, "Back 9")}
+            </div>
+
+            {/* Overall Total Section */}
+            <div className="scorecard-section">
+                <div className="scorecard-row">
+                    <div className="row-label">Total</div>
+                    <div className="hole-column total-column">
+                        <div className="hole-score">
+                            Par: {courseData.holes.reduce((sum, hole) => sum + hole.par, 0)}
                         </div>
-
-                        {/* Par row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">Par</div>
-                            {courseData.holes.map((hole, index) => (
-                                <div key={index} className="hole-column">
-                                    <div className="hole-par">{hole.par}</div>
-                                </div>
-                            ))}
-                            <div className="hole-column total-column">
-                                <div className="hole-par">
-                                    {courseData.holes.reduce((sum, hole) => sum + hole.par, 0)}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Score row */}
-                        <div className="scorecard-row">
-                            <div className="row-label">Score</div>
-                            {courseData.holes.map((hole, index) => {
-                                const scoreType = getScoreType(scores[index], hole.par);
-                                const scoreClass = getScoreClass(scoreType);
-                                const textColorClass = getTextColorClass(scoreType);
-
-                                return (
-                                    <div key={index} className="hole-column">
-                                        <div className="hole-score">
-                                            <div className="score-container">
-                                                {scoreClass ? (
-                                                    <div className={scoreClass}>
-                                                        <input
-                                                            type="number"
-                                                            value={scores[index] === 0 ? '' : scores[index]}
-                                                            onChange={(e) => handleScoreUpdate(index, Number(e.target.value) || 0)}
-                                                            min="1"
-                                                            max="20"
-                                                            placeholder="-"
-                                                            className={`score-input ${textColorClass}`}
-                                                            aria-label={`Score for hole ${index + 1}`}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <input
-                                                        type="number"
-                                                        value={scores[index] === 0 ? '' : scores[index]}
-                                                        onChange={(e) => handleScoreUpdate(index, Number(e.target.value) || 0)}
-                                                        min="1"
-                                                        max="20"
-                                                        placeholder="-"
-                                                        className="score-input"
-                                                        aria-label={`Score for hole ${index + 1}`}
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <div className="hole-column total-column">
-                                <div className="hole-score">
-                                    {scores.reduce((sum, score) => sum + score, 0) || '-'}
-                                </div>
-                            </div>
-                        </div>
-
-
                     </div>
+                    <div className="hole-column total-column">
+                        <div className="hole-score">
+                            Score: {scores.reduce((sum, score) => sum + score, 0) || '-'}
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -276,164 +483,40 @@ function ScoreCard({ scores, updateScore, courseData, handicap, playerName, rese
                 )}
             </div>
 
-            {/* SECOND TABLE: Details Scorecard */}
+            {/* Details Sections */}
             {showDetailsTable && (
-                <>
-                    <div className="scorecard-header-banner details-header">
-                        <div className="player-info">
-                            <strong>{currentHole && `Hole ${currentHole.number} Details`}</strong>
-                        </div>
-                    </div>
+                <div className="scorecard-sections">
+                    {renderDetailsSection(frontNine, 0, "Front 9")}
+                    {renderDetailsSection(backNine, 9, "Back 9")}
 
-                    <div className="scorecard-scroll">
-                        <div className="scorecard">
-                            <div className="scorecard-table details-scorecard">
-
-                                {/* Hole row for details table */}
-                                <div className="scorecard-row hole-number-row">
-                                    <div className="row-label hole-label">Hole</div>
-                                    {courseData.holes.map((hole) => (
-                                        <div key={hole.number} className="hole-column">
-                                            <div className="hole-number">{hole.number}</div>
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        <div className="hole-number">Total</div>
-                                    </div>
+                    {/* Overall Details Total */}
+                    <div className="scorecard-section">
+                        <div className="section-header">Overall Totals</div>
+                        <div className="scorecard-row">
+                            <div className="row-label">Stats</div>
+                            <div className="hole-column total-column">
+                                <div className="hole-score">
+                                    Putts: {totalPutts}
                                 </div>
-                                {/* HCP Index row */}
-                                <div className="scorecard-row">
-                                    <div className="row-label">HCP</div>
-                                    {courseData.holes.map((hole, index) => (
-                                        <div key={index} className="hole-column">
-                                            <div className="hole-hcp">{hole.hcp_index || '-'}</div>
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        <div className="hole-hcp">-</div>
-                                    </div>
+                            </div>
+                            <div className="hole-column total-column">
+                                <div className="hole-score">
+                                    GIR: {totalGirs}
                                 </div>
-
-                                {/* Net Score row */}
-                                <div className="scorecard-row">
-                                    <div className="row-label">Net</div>
-                                    {courseData.holes.map((hole, index) => (
-                                        <div key={index} className="hole-column">
-                                            <div className="hole-net-score">
-                                                {scores[index] ? getNetScore(scores[index], index) : '-'}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        <div className="hole-net-score">
-                                            {handicap && scores.reduce((sum, score, index) => {
-                                                if (!score) return sum;
-                                                const netScore = getNetScore(score, index);
-                                                return netScore !== '-' ? sum + netScore : sum;
-                                            }, 0) || '-'}
-                                        </div>
-                                    </div>
+                            </div>
+                            <div className="hole-column total-column">
+                                <div className="hole-score">
+                                    FWY: {totalFairways}
                                 </div>
-
-                                {/* Fairway hit row */}
-                                <div className="scorecard-row fairway-row">
-                                    <div className="row-label fairway-label">FWY</div>
-                                    {fairwayHits.map((hit, index) => (
-                                        <div key={index} className="hole-column fairway-column">
-                                            <div
-                                                className={`fairway-toggle ${hit ? 'fairway-hit' : 'fairway-miss'}`}
-                                                onClick={() => updateFairwayHit(index, !hit)}
-                                                aria-label={`Fairway hit for hole ${index + 1}`}
-                                                role="checkbox"
-                                                aria-checked={hit}
-                                                tabIndex="0"
-                                                onKeyPress={(e) => {
-                                                    if (e.key === 'Enter' || e.key === ' ') {
-                                                        updateFairwayHit(index, !hit);
-                                                    }
-                                                }}
-                                            >
-                                                {hit ? '✓' : ''}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        {totalFairways}
-                                    </div>
-                                </div>
-
-                                {/* Putts row */}
-                                <div className="scorecard-row putt-row">
-                                    <div className="row-label putt-label">Putts</div>
-                                    {puttCounts.map((putts, index) => (
-                                        <div key={index} className="hole-column putt-column">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="10"
-                                                value={putts || ''}
-                                                onChange={(e) => updatePuttCount(index, parseInt(e.target.value) || 0)}
-                                                className="putt-input"
-                                                aria-label={`Putts for hole ${index + 1}`}
-                                            />
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        {totalPutts}
-                                    </div>
-                                </div>
-
-                                {/* Bunker row */}
-                                <div className="scorecard-row bunker-row">
-                                    <div className="row-label bunker-label">Bunker</div>
-                                    {bunkerCounts.map((bunkers, index) => (
-                                        <div key={index} className="hole-column bunker-column">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="10"
-                                                value={bunkers || ''}
-                                                onChange={(e) => updateBunkerCount(index, parseInt(e.target.value) || 0)}
-                                                className="bunker-input"
-                                                aria-label={`Bunkers hit for hole ${index + 1}`}
-                                            />
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        {totalBunkers}
-                                    </div>
-                                </div>
-
-                                {/* GIR row */}
-                                <div className="scorecard-row gir-row">
-                                    <div className="row-label gir-label">GIR</div>
-                                    {girCounts.map((gir, index) => (
-                                        <div key={index} className="hole-column gir-column">
-                                            <div
-                                                className={`fairway-toggle ${gir ? 'fairway-hit' : 'fairway-miss'}`}
-                                                onClick={() => updateGirCount(index, !gir)}
-                                                aria-label={`Green in Regulation for hole ${index + 1}`}
-                                                role="checkbox"
-                                                aria-checked={gir}
-                                                tabIndex="0"
-                                                onKeyPress={(e) => {
-                                                    if (e.key === 'Enter' || e.key === ' ') {
-                                                        updateGirCount(index, !gir);
-                                                    }
-                                                }}
-                                            >
-                                                {gir ? '✓' : ''}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="hole-column total-column">
-                                        {totalGirs}
-                                    </div>
+                            </div>
+                            <div className="hole-column total-column">
+                                <div className="hole-score">
+                                    Bunkers: {totalBunkers}
                                 </div>
                             </div>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     )

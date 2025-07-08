@@ -1,46 +1,83 @@
 .scorecard {
     min-width: 100%;
+    overflow-x: auto; /* Allow horizontal scrolling when needed */
 }
 
 .scorecard-table {
-    display: table;
-    width: auto;
-    border-collapse: collapse;
+    display: block;
+    width: 100%;
+    min-width: 300px; /* Minimum width to ensure usability */
+}
+
+/* Main container for scorecard sections - ALWAYS vertical */
+.scorecard-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Individual scorecard section (front 9 / back 9) */
+.scorecard-section {
+    display: block;
+    width: 100%;
+    min-width: 300px; /* Minimum width before horizontal scroll kicks in */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow-x: auto; /* Allow horizontal scrolling for individual sections */
 }
 
 .scorecard-header {
-    display: grid;
-    grid-template-columns: repeat(18, 1fr);
+    display: flex;
     background-color: var(--primary-color);
     color: white;
     padding: 12px 15px;
     font-weight: bold;
     text-align: center;
+    min-width: 300px; /* Ensure header doesn't compress too much */
 }
 
 .scorecard-row {
     display: flex;
     border-bottom: 1px solid var(--border-color);
+    min-height: 50px;
+    align-items: center;
+    min-width: 300px; /* Minimum row width */
 }
 
 .scorecard-row:nth-child(even) {
     background-color: var(--light-bg);
 }
 
-/* Styling for the hole number row */
+/* Styling for the hole number row - SAME COMPRESSION AS OTHER ROWS */
 .hole-number-row {
+    display: flex;
     border-bottom: 1px solid var(--border-color);
     background-color: var(--app-bg);
-    height: 32px;
+    min-height: 40px;
+    align-items: center;
+    min-width: 300px;
 }
 
+/* Make hole number row columns compress the same as regular hole columns */
 .hole-number-row .hole-column {
+    flex: 1;
+    min-width: 50px;
     padding: 6px 5px;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hole-number-row .hole-column:last-child {
+    border-right: none;
 }
 
 .hole-number-row .hole-number {
     font-size: 12px;
     color: var(--text-color);
+    font-weight: 500;
 }
 
 .hole-label {
@@ -52,48 +89,242 @@
 }
 
 .row-label {
-    min-width: 60px;
+    flex: 0 0 80px;
+    min-width: 80px;
     padding: 12px 10px;
     text-align: center;
     font-weight: 500;
     background-color: var(--secondary-color);
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media (max-width: 480px) {
+/* Progressive compression for narrow screens - CONSISTENT ACROSS ALL ROWS */
+@media (max-width: 650px) {
     .row-label {
-        min-width: 45px;
+        flex: 0 0 60px;
+        min-width: 60px;
         padding: 8px 5px;
         font-size: 12px;
+    }
+
+    .scorecard-section,
+    .scorecard-row,
+    .hole-number-row,
+    .scorecard-header {
+        min-width: 250px; /* Reduce minimum width on smaller screens */
+    }
+
+    /* Compress hole number row columns the same as regular columns */
+    .hole-number-row .hole-column {
+        min-width: 40px;
+        padding: 6px 3px;
+    }
+
+    .hole-number-row .hole-number {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 500px) {
+    .row-label {
+        flex: 0 0 50px;
+        min-width: 50px;
+        padding: 6px 3px;
+        font-size: 11px;
+    }
+
+    .scorecard-section,
+    .scorecard-row,
+    .hole-number-row,
+    .scorecard-header {
+        min-width: 200px;
+    }
+
+    /* Compress hole number row columns the same as regular columns */
+    .hole-number-row .hole-column {
+        min-width: 32px;
+        padding: 4px 2px;
+    }
+
+    .hole-number-row .hole-number {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 400px) {
+    .row-label {
+        flex: 0 0 40px;
+        min-width: 40px;
+        padding: 4px 2px;
+        font-size: 10px;
+    }
+
+    .scorecard-section,
+    .scorecard-row,
+    .hole-number-row,
+    .scorecard-header {
+        min-width: 180px;
+    }
+
+    /* Compress hole number row columns the same as regular columns */
+    .hole-number-row .hole-column {
+        min-width: 28px;
+        padding: 3px 1px;
+    }
+
+    .hole-number-row .hole-number {
+        font-size: 8px;
+    }
+}
+
+/* Very small screens - allow even more compression but maintain scroll */
+@media (max-width: 320px) {
+    .scorecard-section,
+    .scorecard-row,
+    .hole-number-row,
+    .scorecard-header {
+        min-width: 160px; /* Final minimum before scroll is required */
+    }
+
+    /* Compress hole number row columns the same as regular columns */
+    .hole-number-row .hole-column {
+        min-width: 24px;
+        padding: 2px 1px;
+    }
+
+    .hole-number-row .hole-number {
+        font-size: 7px;
     }
 }
 
 .hole-column {
+    flex: 1;
     min-width: 50px;
     padding: 12px 5px;
     text-align: center;
     border-right: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media (max-width: 480px) {
+.hole-column:last-child {
+    border-right: none;
+}
+
+/* Progressive compression for hole columns */
+@media (max-width: 650px) {
     .hole-column {
         min-width: 40px;
-        padding: 8px 2px;
+        padding: 8px 3px;
+    }
+}
+
+@media (max-width: 500px) {
+    .hole-column {
+        min-width: 32px;
+        padding: 6px 2px;
+    }
+}
+
+@media (max-width: 400px) {
+    .hole-column {
+        min-width: 28px;
+        padding: 4px 1px;
+    }
+}
+
+@media (max-width: 350px) {
+    .hole-column {
+        min-width: 24px;
+        padding: 3px 1px;
+    }
+}
+
+@media (max-width: 320px) {
+    .hole-column {
+        min-width: 20px;
+        padding: 2px 1px;
     }
 }
 
 .total-column {
     background-color: var(--light-bg);
     font-weight: bold;
+    flex: 0 0 60px;
+    min-width: 60px;
+    border-left: 2px solid var(--border-color);
 }
 
-.scorecard-header div {
+/* Make total column in hole number row compress the same way */
+.hole-number-row .total-column {
+    background-color: var(--light-bg);
+    font-weight: bold;
+    flex: 0 0 60px;
+    min-width: 60px;
+    border-left: 2px solid var(--border-color);
+}
+
+@media (max-width: 650px) {
+    .total-column,
+    .hole-number-row .total-column {
+        flex: 0 0 50px;
+        min-width: 50px;
+    }
+}
+
+@media (max-width: 400px) {
+    .total-column,
+    .hole-number-row .total-column {
+        flex: 0 0 40px;
+        min-width: 40px;
+    }
+}
+
+@media (max-width: 320px) {
+    .total-column,
+    .hole-number-row .total-column {
+        flex: 0 0 35px;
+        min-width: 35px;
+    }
+}
+
+.scorecard-header > div {
     flex: 1;
     text-align: center;
+    padding: 0 2px;
+}
+
+.scorecard-header .row-label {
+    background-color: var(--primary-color);
+}
+
+.scorecard-header .total-column {
+    background-color: var(--primary-color);
 }
 
 .scorecard-body {
     background-color: var(--app-bg);
+}
+
+/* Section headers for Front 9 / Back 9 */
+.section-header {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 8px 15px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 14px;
+}
+
+@media (max-width: 650px) {
+    .section-header {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
 }
 
 /* New combined header banner */
@@ -105,9 +336,10 @@
     align-items: center;
     justify-content: center;
     border-radius: 6px 6px 0 0;
+    margin-bottom: 20px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .scorecard-header-banner {
         padding: 8px 10px;
     }
@@ -118,11 +350,37 @@
     font-weight: 500;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .player-info {
         font-size: 12px;
         line-height: 1.3;
     }
+}
+
+@media (max-width: 400px) {
+    .player-info {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+}
+
+/* Horizontal scroll indicator for better UX */
+.scorecard-section::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scorecard-section::-webkit-scrollbar-track {
+    background: var(--light-bg, #f1f1f1);
+    border-radius: 3px;
+}
+
+.scorecard-section::-webkit-scrollbar-thumb {
+    background: var(--primary-color, #3498db);
+    border-radius: 3px;
+}
+
+.scorecard-section::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color, #2980b9);
 }
 
 /* Add these styles to your scorecard.css file */
@@ -173,10 +431,38 @@
     margin: 0 auto;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .score-container {
         width: 36px;
         height: 36px;
+    }
+}
+
+@media (max-width: 500px) {
+    .score-container {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 400px) {
+    .score-container {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+@media (max-width: 350px) {
+    .score-container {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+@media (max-width: 320px) {
+    .score-container {
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -195,11 +481,43 @@
     box-shadow: var(--soft-shadow);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .score-input {
         width: 28px;
         height: 28px;
         font-size: 14px;
+    }
+}
+
+@media (max-width: 500px) {
+    .score-input {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .score-input {
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 350px) {
+    .score-input {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 320px) {
+    .score-input {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
     }
 }
 
@@ -271,6 +589,26 @@
     z-index: 1;
 }
 
+@media (max-width: 500px) {
+    .score-double-square::after {
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        border-width: 1px;
+    }
+}
+
+@media (max-width: 320px) {
+    .score-double-square::after {
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border-width: 1px;
+    }
+}
+
 /* Double circle for eagles (existing circle plus additional styling) */
 .score-double-circle {
     display: inline-flex;
@@ -298,17 +636,92 @@
     z-index: 1;
 }
 
+@media (max-width: 500px) {
+    .score-double-circle::after {
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        border-width: 1px;
+    }
+}
+
+@media (max-width: 320px) {
+    .score-double-circle::after {
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border-width: 1px;
+    }
+}
+
 /* GIR (Green in Regulation) row styling */
 .gir-row {
+    display: flex;
     background-color: var(--light-bg);
     border-top: 1px solid var(--border-color);
+    min-height: 50px;
+    align-items: center;
+    min-width: 300px;
 }
 
 .gir-column {
+    flex: 1;
+    min-width: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px 5px;
+    border-right: 1px solid var(--border-color);
+}
+
+.gir-column:last-child {
+    border-right: none;
+}
+
+@media (max-width: 650px) {
+    .gir-column {
+        min-width: 40px;
+        padding: 6px 3px;
+    }
+
+    .gir-row {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 500px) {
+    .gir-column {
+        min-width: 32px;
+        padding: 4px 2px;
+    }
+
+    .gir-row {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    .gir-column {
+        min-width: 28px;
+        padding: 3px 1px;
+    }
+
+    .gir-row {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 320px) {
+    .gir-column {
+        min-width: 24px;
+        padding: 2px 1px;
+    }
+
+    .gir-row {
+        min-width: 160px;
+    }
 }
 
 .gir-toggle {
@@ -327,6 +740,38 @@
     transition: all var(--transition-speed) ease;
     user-select: none;
     box-shadow: var(--soft-shadow);
+}
+
+@media (max-width: 650px) {
+    .gir-toggle {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 500px) {
+    .gir-toggle {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .gir-toggle {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 320px) {
+    .gir-toggle {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
 }
 
 .gir-toggle:hover {
@@ -371,15 +816,70 @@
 }
 
 .fairway-row {
+    display: flex;
     background-color: var(--light-bg);
     border-top: 1px solid var(--border-color);
+    min-height: 50px;
+    align-items: center;
+    min-width: 300px;
 }
 
 .fairway-column {
+    flex: 1;
+    min-width: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px 5px;
+    border-right: 1px solid var(--border-color);
+}
+
+.fairway-column:last-child {
+    border-right: none;
+}
+
+@media (max-width: 650px) {
+    .fairway-column {
+        min-width: 40px;
+        padding: 6px 3px;
+    }
+
+    .fairway-row {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 500px) {
+    .fairway-column {
+        min-width: 32px;
+        padding: 4px 2px;
+    }
+
+    .fairway-row {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    .fairway-column {
+        min-width: 28px;
+        padding: 3px 1px;
+    }
+
+    .fairway-row {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 320px) {
+    .fairway-column {
+        min-width: 24px;
+        padding: 2px 1px;
+    }
+
+    .fairway-row {
+        min-width: 160px;
+    }
 }
 
 .row-label.fairway-label {
@@ -402,11 +902,35 @@
     box-shadow: var(--soft-shadow);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .fairway-toggle {
         width: 20px;
         height: 20px;
         font-size: 12px;
+    }
+}
+
+@media (max-width: 500px) {
+    .fairway-toggle {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .fairway-toggle {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 320px) {
+    .fairway-toggle {
+        width: 14px;
+        height: 14px;
+        font-size: 8px;
     }
 }
 
@@ -426,15 +950,70 @@
 
 /* Add bunker row styling */
 .bunker-row {
+    display: flex;
     background-color: var(--light-bg);
     border-top: 1px solid var(--border-color);
+    min-height: 50px;
+    align-items: center;
+    min-width: 300px;
 }
 
 .bunker-column {
+    flex: 1;
+    min-width: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 8px 5px;
+    border-right: 1px solid var(--border-color);
+}
+
+.bunker-column:last-child {
+    border-right: none;
+}
+
+@media (max-width: 650px) {
+    .bunker-column {
+        min-width: 40px;
+        padding: 6px 3px;
+    }
+
+    .bunker-row {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 500px) {
+    .bunker-column {
+        min-width: 32px;
+        padding: 4px 2px;
+    }
+
+    .bunker-row {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    .bunker-column {
+        min-width: 28px;
+        padding: 3px 1px;
+    }
+
+    .bunker-row {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 320px) {
+    .bunker-column {
+        min-width: 24px;
+        padding: 2px 1px;
+    }
+
+    .bunker-row {
+        min-width: 160px;
+    }
 }
 
 .row-label.bunker-label {
@@ -458,11 +1037,35 @@
     box-shadow: var(--soft-shadow);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .bunker-input {
         width: 26px;
         height: 26px;
         font-size: 14px;
+    }
+}
+
+@media (max-width: 500px) {
+    .bunker-input {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .bunker-input {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 320px) {
+    .bunker-input {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
     }
 }
 
@@ -487,6 +1090,149 @@
     -moz-appearance: textfield;
 }
 
+/* Putt input styling for consistency */
+.putt-input {
+    width: 32px;
+    height: 32px;
+    text-align: center;
+    border: 2px solid var(--input-border);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    padding: 0;
+    box-shadow: var(--soft-shadow);
+}
+
+@media (max-width: 650px) {
+    .putt-input {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 500px) {
+    .putt-input {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .putt-input {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 320px) {
+    .putt-input {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
+}
+
+.putt-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.putt-input:hover {
+    border-color: var(--primary-color);
+}
+
+/* Remove arrows from number inputs */
+.putt-input::-webkit-outer-spin-button,
+.putt-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.putt-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Putt row and column styling for consistency */
+.putt-row {
+    display: flex;
+    background-color: var(--light-bg);
+    border-top: 1px solid var(--border-color);
+    min-height: 50px;
+    align-items: center;
+    min-width: 300px;
+}
+
+.putt-column {
+    flex: 1;
+    min-width: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 5px;
+    border-right: 1px solid var(--border-color);
+}
+
+.putt-column:last-child {
+    border-right: none;
+}
+
+@media (max-width: 650px) {
+    .putt-column {
+        min-width: 40px;
+        padding: 6px 3px;
+    }
+
+    .putt-row {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 500px) {
+    .putt-column {
+        min-width: 32px;
+        padding: 4px 2px;
+    }
+
+    .putt-row {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    .putt-column {
+        min-width: 28px;
+        padding: 3px 1px;
+    }
+
+    .putt-row {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 320px) {
+    .putt-column {
+        min-width: 24px;
+        padding: 2px 1px;
+    }
+
+    .putt-row {
+        min-width: 160px;
+    }
+}
+
+.row-label.putt-label {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
 /* Add this to your existing scorecard.css file */
 
 .details-toggle {
@@ -507,11 +1253,19 @@
     width: fit-content;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
     .details-toggle {
         padding: 6px 12px;
         font-size: 12px;
         border-radius: 16px;
+    }
+}
+
+@media (max-width: 400px) {
+    .details-toggle {
+        padding: 4px 10px;
+        font-size: 11px;
+        border-radius: 14px;
     }
 }
 
@@ -522,6 +1276,13 @@
 .toggle-icon {
     margin-left: 8px;
     font-size: 12px;
+}
+
+@media (max-width: 400px) {
+    .toggle-icon {
+        margin-left: 6px;
+        font-size: 10px;
+    }
 }
 
 /* Adjust spacing between tables when toggle is visible */
